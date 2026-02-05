@@ -1,0 +1,34 @@
+[tool.poetry]
+name = "ibkr-trading-bot"
+version = "0.1.0"
+description = "IBKR options trading bot"
+authors = ["Charter & Stone Capital"]
+readme = "README.md"
+packages = [{ include = "src" }]
+
+[tool.poetry.dependencies]
+python = ">=3.10,<4.0"
+ib-insync = "*"
+pandas = "*"
+numpy = "*"
+pydantic = "*"
+aiohttp = "*"
+python-dotenv = "*"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "*"
+pytest-asyncio = "*"
+pytest-cov = "*"
+black = "*"
+ruff = "*"
+mypy = "*"
+
+[tool.black]
+line-length = 100
+
+[tool.mypy]
+strict = true
+
+[build-system]
+requires = ["poetry-core>=1.6.0"]
+build-backend = "poetry.core.masonry.api"

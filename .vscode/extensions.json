@@ -1,0 +1,16 @@
+{
+  // Recommended VS Code extensions for this workspace
+  "recommendations": [
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    "astral-sh.ruff",
+    "ms-python.debugpy",
+    "ms-azuretools.vscode-docker",
+    "ms-vscode-remote.remote-ssh",
+    "github.copilot",
+    "github.vscode-github-actions",
+    "eamodio.gitlens",
+    "usernamehw.errorlens",
+    "aaron-bond.better-comments"
+  ]
+}

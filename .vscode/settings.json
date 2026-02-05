@@ -1,0 +1,42 @@
+{
+  // Use the workspace virtual environment
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+  "python.envFile": "${workspaceFolder}/.env",
+
+  // Testing
+  "python.testing.pytestEnabled": true,
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestArgs": ["-q"],
+
+  // Linting (ruff only)
+  "ruff.enable": true,
+  "python.linting.enabled": false,
+  "python.linting.pylintEnabled": false,
+  "python.linting.flake8Enabled": false,
+  "python.linting.mypyEnabled": true,
+  "python.linting.mypyArgs": ["--strict"],
+
+  // Formatting (black, 100 char line length)
+  "python.formatting.provider": "black",
+  "python.formatting.blackArgs": ["--line-length", "100"],
+
+  // Type checking (Pylance strict)
+  "python.analysis.typeCheckingMode": "strict",
+
+  // Editor behavior
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": true
+  },
+
+  // File exclusions
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**/.pytest_cache": true,
+    "**/*.pyc": true
+  },
+
+  // Terminal defaults
+  "terminal.integrated.defaultProfile.windows": "bash",
+  "terminal.integrated.cwd": "${workspaceFolder}"
+}

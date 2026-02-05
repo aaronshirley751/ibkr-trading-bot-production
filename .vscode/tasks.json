@@ -1,0 +1,30 @@
+{
+  // Common development tasks for the trading bot
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Run Tests",
+      "type": "shell",
+      "command": "poetry",
+      "args": ["run", "pytest", "--cov=."]
+    },
+    {
+      "label": "Lint",
+      "type": "shell",
+      "command": "poetry",
+      "args": ["run", "ruff", "check", "."]
+    },
+    {
+      "label": "Format",
+      "type": "shell",
+      "command": "poetry",
+      "args": ["run", "black", "."]
+    },
+    {
+      "label": "Type Check",
+      "type": "shell",
+      "command": "poetry",
+      "args": ["run", "mypy", "."]
+    }
+  ]
+}

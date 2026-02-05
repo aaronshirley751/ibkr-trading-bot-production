@@ -1,0 +1,19 @@
+{
+  // Debug configuration for the trading bot
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run Bot (Dry Run)",
+      "type": "python",
+      "request": "launch",
+      // Update program path if your entrypoint differs
+      "program": "${workspaceFolder}/src/bot/core.py",
+      "args": ["--dry-run"],
+      "cwd": "${workspaceFolder}",
+      "envFile": "${workspaceFolder}/.env",
+      "python": "${workspaceFolder}/.venv/bin/python",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    }
+  ]
+}

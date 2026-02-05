@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+*.egg-info/
+dist/
+build/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE - Keep project configs, ignore personal settings
+# .vscode/ - DO NOT IGNORE (contains project requirements)
+.idea/
+*.swp
+*.swo
+
+# Environment - Keep template, ignore actual secrets
+.env
+.env.local
+# .env.template - DO NOT IGNORE (this is documentation)
+
+# State files
+state/crucible_state.json
+logs/*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Poetry
+poetry.lock  # Optional: some projects track this, we'll ignore for flexibility
