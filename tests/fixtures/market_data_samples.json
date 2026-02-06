@@ -1,0 +1,30 @@
+{
+  "edge_cases": {
+    "missing_greeks": {
+      "note": "Option contract with missing Greeks (test graceful degradation)",
+      "contract": {
+        "symbol": "SPY",
+        "expiry": "20260213",
+        "strike": 690.0,
+        "right": "C"
+      },
+      "market_data": {
+        "last": 3.85,
+        "bid": 3.80,
+        "ask": 3.90
+      },
+      "greeks": null
+    },
+    "stale_timestamp": {
+      "note": "Market data with old timestamp (test data quality validation)",
+      "timestamp": "2026-02-05T09:30:00-05:00",
+      "symbol": "SPY",
+      "price": 689.45
+    },
+    "extreme_vix": {
+      "note": "VIX > 50 panic conditions",
+      "vix_level": 52.3,
+      "regime": "crisis"
+    }
+  }
+}

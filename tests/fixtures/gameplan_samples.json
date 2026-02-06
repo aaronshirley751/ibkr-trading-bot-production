@@ -1,0 +1,26 @@
+{
+  "strategy_a_normal": {
+    "strategy": "A",
+    "regime": "normal",
+    "vix_at_analysis": 16.5,
+    "symbols": ["SPY", "QQQ"],
+    "position_size_multiplier": 1.0,
+    "bias": "bullish"
+  },
+  "strategy_b_elevated": {
+    "strategy": "B",
+    "regime": "elevated",
+    "vix_at_analysis": 23.5,
+    "symbols": ["SPY"],
+    "position_size_multiplier": 0.5,
+    "bias": "neutral"
+  },
+  "strategy_c_crisis": {
+    "strategy": "C",
+    "regime": "crisis",
+    "vix_at_analysis": 31.0,
+    "symbols": [],
+    "position_size_multiplier": 0.0,
+    "bias": "neutral"
+  }
+}
