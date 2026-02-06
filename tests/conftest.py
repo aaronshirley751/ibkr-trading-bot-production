@@ -129,6 +129,119 @@ def all_snapshots(
 
 
 # =============================================================================
+# SCENARIO-BASED SNAPSHOT FIXTURES (Session-scoped)
+# =============================================================================
+
+
+@pytest.fixture(scope="session")
+def snapshot_normal_market(snapshots_dir: Path) -> Dict[str, Any]:
+    """
+    Load normal market conditions snapshot.
+
+    Scenario: Normal VIX (~16), uptrend, moderate volume
+    Use for: Strategy A (Momentum) validation
+
+    Returns:
+        Full snapshot with SPY, QQQ, IWM data (60 bars, 10 options each)
+    """
+    snapshot_path = snapshots_dir / "snapshot_normal_market.json"
+    with open(snapshot_path) as f:
+        data: Dict[str, Any] = json.load(f)
+        return data
+
+
+@pytest.fixture(scope="session")
+def snapshot_high_volatility(snapshots_dir: Path) -> Dict[str, Any]:
+    """
+    Load high volatility market snapshot.
+
+    Scenario: High VIX (~28), choppy/mean-reverting, high volume
+    Use for: Strategy B (Mean Reversion) validation
+
+    Returns:
+        Full snapshot with SPY, QQQ, IWM data (60 bars, 10 options each)
+    """
+    snapshot_path = snapshots_dir / "snapshot_high_volatility.json"
+    with open(snapshot_path) as f:
+        data: Dict[str, Any] = json.load(f)
+        return data
+
+
+@pytest.fixture(scope="session")
+def snapshot_low_volatility(snapshots_dir: Path) -> Dict[str, Any]:
+    """
+    Load low volatility market snapshot.
+
+    Scenario: Low VIX (~12), range-bound/grinding, low volume
+    Use for: Edge case testing (neither strategy should trigger)
+
+    Returns:
+        Full snapshot with SPY, QQQ, IWM data (60 bars, 10 options each)
+    """
+    snapshot_path = snapshots_dir / "snapshot_low_volatility.json"
+    with open(snapshot_path) as f:
+        data: Dict[str, Any] = json.load(f)
+        return data
+
+
+@pytest.fixture(scope="session")
+def snapshot_market_open(snapshots_dir: Path) -> Dict[str, Any]:
+    """
+    Load market open snapshot.
+
+    Scenario: Opening volatility spike, high volume, first 30 minutes
+    Use for: Execution testing during high-volume periods
+
+    Returns:
+        Full snapshot with SPY, QQQ, IWM data (30 bars, 10 options each)
+    """
+    snapshot_path = snapshots_dir / "snapshot_market_open.json"
+    with open(snapshot_path) as f:
+        data: Dict[str, Any] = json.load(f)
+        return data
+
+
+@pytest.fixture(scope="session")
+def snapshot_end_of_day(snapshots_dir: Path) -> Dict[str, Any]:
+    """
+    Load end of day snapshot.
+
+    Scenario: Closing activity, diminishing volume, time-based exit testing
+    Use for: Position closing logic (0 DTE options)
+
+    Returns:
+        Full snapshot with SPY, QQQ, IWM data (15 bars, 10 options each)
+    """
+    snapshot_path = snapshots_dir / "snapshot_end_of_day.json"
+    with open(snapshot_path) as f:
+        data: Dict[str, Any] = json.load(f)
+        return data
+
+
+@pytest.fixture(scope="session")
+def all_scenario_snapshots(
+    snapshot_normal_market: Dict[str, Any],
+    snapshot_high_volatility: Dict[str, Any],
+    snapshot_low_volatility: Dict[str, Any],
+    snapshot_market_open: Dict[str, Any],
+    snapshot_end_of_day: Dict[str, Any],
+) -> Dict[str, Dict[str, Any]]:
+    """
+    All scenario snapshots in a single dictionary.
+
+    Returns:
+        Dictionary mapping scenario name -> snapshot data
+    """
+    return {
+        "normal_market": snapshot_normal_market,
+        "high_volatility": snapshot_high_volatility,
+        "low_volatility": snapshot_low_volatility,
+        "market_open": snapshot_market_open,
+        "end_of_day": snapshot_end_of_day,
+    }
+
+
+# =============================================================================
 # SAMPLE DATA FIXTURES (Session-scoped)
 # =============================================================================
 

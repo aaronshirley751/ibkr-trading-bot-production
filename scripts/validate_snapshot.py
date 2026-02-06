@@ -71,11 +71,12 @@ def validate_snapshot_file(snapshot_path: Path) -> bool:
         else:
             print(f"  ✓ Option Contracts: {len(option_chain)}")
 
-        # Check Greeks presence
+        # Check Greeks presence (can be nested or direct properties)
         options_with_greeks = sum(
             1
             for opt in option_chain
-            if opt.get("greeks") and opt["greeks"].get("delta") is not None
+            if (opt.get("greeks") and opt["greeks"].get("delta") is not None)
+            or (opt.get("delta") is not None)
         )
         print(
             f"  {'✓' if options_with_greeks > 0 else '⚠'} Options with Greeks: {options_with_greeks}/{len(option_chain)}"
