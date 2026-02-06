@@ -745,7 +745,7 @@ find tests/ -name "*.py" | wc -l
 # Expected: 29 files
 
 # Check all JSON files created
-find tests/ -name "*.json" | wc -l  
+find tests/ -name "*.json" | wc -l
 # Expected: 5 files (3 placeholders + 2 fixtures)
 ```
 

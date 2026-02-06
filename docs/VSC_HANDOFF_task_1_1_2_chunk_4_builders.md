@@ -1,10 +1,10 @@
 # VSC HANDOFF: Task 1.1.2 Chunk 4 - Test Builder Helpers
 
-**Document ID:** `VSC_HANDOFF_task_1_1_2_chunk_4_builders.md`  
-**Created:** 2026-02-06  
-**Author:** @Systems_Architect  
-**Reviewed By:** @QA_Lead  
-**Task Reference:** Phase 1 - Test Suite Migration (Task 1.1.2, Chunk 4)  
+**Document ID:** `VSC_HANDOFF_task_1_1_2_chunk_4_builders.md`
+**Created:** 2026-02-06
+**Author:** @Systems_Architect
+**Reviewed By:** @QA_Lead
+**Task Reference:** Phase 1 - Test Suite Migration (Task 1.1.2, Chunk 4)
 
 ---
 
@@ -61,11 +61,11 @@ from decimal import Decimal
 
 class ContractBuilder:
     """Builder for IBKR Contract objects with realistic defaults.
-    
+
     Supports options, stocks, and futures with domain-aware defaults
     for strikes, expiries, and contract specifications.
     """
-    
+
     def __init__(self):
         self._symbol = "SPY"
         self._sec_type = "OPT"
@@ -78,25 +78,25 @@ class ContractBuilder:
         self._multiplier = "100"
         self._local_symbol = ""
         self._trading_class = ""
-        
+
     def spy(self) -> "ContractBuilder":
         """Set symbol to SPY with appropriate defaults."""
         self._symbol = "SPY"
         self._strike = 580.0
         return self
-    
+
     def qqq(self) -> "ContractBuilder":
         """Set symbol to QQQ with appropriate defaults."""
         self._symbol = "QQQ"
         self._strike = 500.0
         return self
-    
+
     def iwm(self) -> "ContractBuilder":
         """Set symbol to IWM with appropriate defaults."""
         self._symbol = "IWM"
         self._strike = 220.0
         return self
-    
+
     def stock(self) -> "ContractBuilder":
         """Set security type to stock (STK)."""
         self._sec_type = "STK"
@@ -105,31 +105,31 @@ class ContractBuilder:
         self._right = ""
         self._multiplier = "1"
         return self
-    
+
     def option(self) -> "ContractBuilder":
         """Set security type to option (OPT)."""
         self._sec_type = "OPT"
         self._multiplier = "100"
         return self
-    
+
     def call(self) -> "ContractBuilder":
         """Set option right to Call."""
         self._right = "C"
         return self
-    
+
     def put(self) -> "ContractBuilder":
         """Set option right to Put."""
         self._right = "P"
         return self
-    
+
     def strike(self, price: float) -> "ContractBuilder":
         """Set strike price."""
         self._strike = price
         return self
-    
+
     def expiry(self, date_str: str) -> "ContractBuilder":
         """Set expiry date in YYYYMMDD format.
-        
+
         Args:
             date_str: Expiry date as "YYYY-MM-DD" or "YYYYMMDD"
         """
@@ -138,25 +138,25 @@ class ContractBuilder:
             date_str = date_str.replace("-", "")
         self._expiry = date_str
         return self
-    
+
     def dte(self, days: int) -> "ContractBuilder":
         """Set expiry to N days from today.
-        
+
         Args:
             days: Days until expiry (e.g., 2 for 2DTE)
         """
         expiry_date = datetime.now() + timedelta(days=days)
         self._expiry = expiry_date.strftime("%Y%m%d")
         return self
-    
+
     def exchange(self, exch: str) -> "ContractBuilder":
         """Set exchange."""
         self._exchange = exch
         return self
-    
+
     def build(self) -> Dict:
         """Build and return the contract dictionary.
-        
+
         Returns:
             Dictionary representation of IBKR Contract
         """
@@ -166,7 +166,7 @@ class ContractBuilder:
             "currency": self._currency,
             "exchange": self._exchange,
         }
-        
+
         if self._sec_type == "OPT":
             contract.update({
                 "right": self._right,
@@ -174,13 +174,13 @@ class ContractBuilder:
                 "lastTradeDateOrContractMonth": self._expiry,
                 "multiplier": self._multiplier,
             })
-        
+
         return contract
 
 
 class OrderBuilder:
     """Builder for IBKR Order objects with realistic defaults."""
-    
+
     def __init__(self):
         self._action = "BUY"
         self._order_type = "LMT"
@@ -192,58 +192,58 @@ class OrderBuilder:
         self._order_id = 0
         self._perm_id = 0
         self._client_id = 0
-        
+
     def buy(self) -> "OrderBuilder":
         """Set action to BUY."""
         self._action = "BUY"
         return self
-    
+
     def sell(self) -> "OrderBuilder":
         """Set action to SELL."""
         self._action = "SELL"
         return self
-    
+
     def quantity(self, qty: int) -> "OrderBuilder":
         """Set order quantity."""
         self._total_quantity = qty
         return self
-    
+
     def limit_price(self, price: float) -> "OrderBuilder":
         """Set limit price and order type to LMT."""
         self._order_type = "LMT"
         self._lmt_price = price
         return self
-    
+
     def market(self) -> "OrderBuilder":
         """Set order type to market (MKT)."""
         self._order_type = "MKT"
         self._lmt_price = 0.0
         return self
-    
+
     def stop(self, stop_price: float) -> "OrderBuilder":
         """Set order type to stop (STP)."""
         self._order_type = "STP"
         self._aux_price = stop_price
         return self
-    
+
     def order_id(self, oid: int) -> "OrderBuilder":
         """Set order ID."""
         self._order_id = oid
         return self
-    
+
     def account(self, acct: str) -> "OrderBuilder":
         """Set account identifier."""
         self._account = acct
         return self
-    
+
     def tif(self, time_in_force: str) -> "OrderBuilder":
         """Set time in force (DAY, GTC, IOC, etc.)."""
         self._tif = time_in_force
         return self
-    
+
     def build(self) -> Dict:
         """Build and return the order dictionary.
-        
+
         Returns:
             Dictionary representation of IBKR Order
         """
@@ -257,19 +257,19 @@ class OrderBuilder:
             "permId": self._perm_id,
             "clientId": self._client_id,
         }
-        
+
         if self._order_type == "LMT":
             order["lmtPrice"] = self._lmt_price
-        
+
         if self._order_type == "STP":
             order["auxPrice"] = self._aux_price
-        
+
         return order
 
 
 class PositionBuilder:
     """Builder for position tracking objects."""
-    
+
     def __init__(self):
         self._symbol = "SPY"
         self._quantity = 100
@@ -277,50 +277,50 @@ class PositionBuilder:
         self._realized_pnl = 0.0
         self._unrealized_pnl = 0.0
         self._market_value = 0.0
-        
+
     def symbol(self, sym: str) -> "PositionBuilder":
         """Set position symbol."""
         self._symbol = sym
         return self
-    
+
     def spy(self) -> "PositionBuilder":
         """Set symbol to SPY with default strike."""
         self._symbol = "SPY"
         return self
-    
+
     def qqq(self) -> "PositionBuilder":
         """Set symbol to QQQ with default strike."""
         self._symbol = "QQQ"
         return self
-    
+
     def quantity(self, qty: int) -> "PositionBuilder":
         """Set position quantity (positive=long, negative=short)."""
         self._quantity = qty
         return self
-    
+
     def avg_cost(self, cost: float) -> "PositionBuilder":
         """Set average cost per share/contract."""
         self._avg_cost = cost
         return self
-    
+
     def realized_pnl(self, pnl: float) -> "PositionBuilder":
         """Set realized P&L."""
         self._realized_pnl = pnl
         return self
-    
+
     def unrealized_pnl(self, pnl: float) -> "PositionBuilder":
         """Set unrealized P&L."""
         self._unrealized_pnl = pnl
         return self
-    
+
     def market_value(self, value: float) -> "PositionBuilder":
         """Set current market value."""
         self._market_value = value
         return self
-    
+
     def build(self) -> Dict:
         """Build and return the position dictionary.
-        
+
         Returns:
             Dictionary representation of position
         """
@@ -336,7 +336,7 @@ class PositionBuilder:
 
 class FillBuilder:
     """Builder for order fill/execution objects."""
-    
+
     def __init__(self):
         self._order_id = 0
         self._exec_id = ""
@@ -351,52 +351,52 @@ class FillBuilder:
         self._liquidation = 0
         self._cum_qty = 1
         self._avg_price = 0.0
-        
+
     def order_id(self, oid: int) -> "FillBuilder":
         """Set order ID."""
         self._order_id = oid
         return self
-    
+
     def exec_id(self, eid: str) -> "FillBuilder":
         """Set execution ID."""
         self._exec_id = eid
         return self
-    
+
     def buy(self) -> "FillBuilder":
         """Set side to bought (BOT)."""
         self._side = "BOT"
         return self
-    
+
     def sell(self) -> "FillBuilder":
         """Set side to sold (SLD)."""
         self._side = "SLD"
         return self
-    
+
     def quantity(self, qty: int) -> "FillBuilder":
         """Set fill quantity."""
         self._shares = qty
         self._cum_qty = qty
         return self
-    
+
     def price(self, px: float) -> "FillBuilder":
         """Set fill price."""
         self._price = px
         self._avg_price = px
         return self
-    
+
     def timestamp(self, ts: str) -> "FillBuilder":
         """Set execution timestamp (ISO format)."""
         self._time = ts
         return self
-    
+
     def account(self, acct: str) -> "FillBuilder":
         """Set account identifier."""
         self._account = acct
         return self
-    
+
     def build(self) -> Dict:
         """Build and return the fill dictionary.
-        
+
         Returns:
             Dictionary representation of execution/fill
         """
@@ -674,10 +674,10 @@ def test_order_execution(mock_broker):
     # Setup: Build test objects with minimal code
     contract = ContractBuilder().spy().call().strike(580).dte(2).build()
     order = OrderBuilder().buy().quantity(1).limit_price(5.25).build()
-    
+
     # Execute
     result = mock_broker.place_order(contract, order)
-    
+
     # Verify
     expected_fill = FillBuilder().order_id(order["orderId"]).buy().price(5.25).build()
     assert result["execId"] == expected_fill["execId"]
@@ -688,7 +688,7 @@ def test_order_execution(mock_broker):
 def test_position_tracking(mock_broker, sample_market_data):
     # Build position from market data
     position = PositionBuilder().spy().quantity(100).avg_cost(sample_market_data["close"]).build()
-    
+
     # Test position management logic
     mock_broker.update_position(position)
     assert_position_exists(mock_broker.positions, "SPY", 100)
@@ -727,7 +727,7 @@ def test_position_tracking(mock_broker, sample_market_data):
 ## 8. EDGE CASES & TEST SCENARIOS
 
 ### Edge Case 1: Option vs Stock Contract Differentiation
-**Scenario:** Builder must correctly omit option-specific fields for stock contracts  
+**Scenario:** Builder must correctly omit option-specific fields for stock contracts
 **Example:**
 ```python
 stock = ContractBuilder().spy().stock().build()
@@ -737,7 +737,7 @@ stock = ContractBuilder().spy().stock().build()
 **Expected:** Stock contracts have no option-specific fields
 
 ### Edge Case 2: Date Format Conversion
-**Scenario:** Expiry dates can be input as YYYY-MM-DD or YYYYMMDD  
+**Scenario:** Expiry dates can be input as YYYY-MM-DD or YYYYMMDD
 **Example:**
 ```python
 c1 = ContractBuilder().spy().call().expiry("2026-02-14").build()
@@ -747,7 +747,7 @@ c2 = ContractBuilder().spy().call().expiry("20260214").build()
 **Expected:** Hyphenated dates automatically converted to YYYYMMDD
 
 ### Edge Case 3: DTE Auto-Calculation
-**Scenario:** Using .dte() should calculate correct future date  
+**Scenario:** Using .dte() should calculate correct future date
 **Example:**
 ```python
 contract = ContractBuilder().spy().call().dte(2).build()
@@ -756,7 +756,7 @@ contract = ContractBuilder().spy().call().dte(2).build()
 **Expected:** Expiry date dynamically calculated based on current date
 
 ### Edge Case 4: Order Type Implications
-**Scenario:** Setting limit_price should automatically set orderType to LMT  
+**Scenario:** Setting limit_price should automatically set orderType to LMT
 **Example:**
 ```python
 order = OrderBuilder().buy().limit_price(5.25).build()
@@ -765,7 +765,7 @@ order = OrderBuilder().buy().limit_price(5.25).build()
 **Expected:** Order type inferred from price-setting methods
 
 ### Edge Case 5: Conditional Field Inclusion
-**Scenario:** Stop orders should include auxPrice but not lmtPrice  
+**Scenario:** Stop orders should include auxPrice but not lmtPrice
 **Example:**
 ```python
 stop_order = OrderBuilder().sell().stop(4.50).build()
@@ -775,7 +775,7 @@ stop_order = OrderBuilder().sell().stop(4.50).build()
 **Expected:** Field inclusion based on order type
 
 ### Edge Case 6: Position Sign Convention
-**Scenario:** Positive quantity = long, negative = short  
+**Scenario:** Positive quantity = long, negative = short
 **Example:**
 ```python
 long_pos = PositionBuilder().spy().quantity(100).build()   # Long 100
@@ -785,7 +785,7 @@ flat_pos = PositionBuilder().spy().quantity(0).build()      # Flat
 **Expected:** Sign preserved in output, no validation errors
 
 ### Edge Case 7: Builder Reuse
-**Scenario:** Creating multiple objects from same builder instance  
+**Scenario:** Creating multiple objects from same builder instance
 **Example:**
 ```python
 builder = ContractBuilder().spy().call().strike(580)
@@ -796,7 +796,7 @@ c2 = builder.strike(585).build()  # Modifies existing builder
 **Expected:** Each .build() returns independent object, builder state persists
 
 ### Edge Case 8: Default Value Sanity
-**Scenario:** Default values should be realistic for testing  
+**Scenario:** Default values should be realistic for testing
 **Example:**
 ```python
 contract = ContractBuilder().build()
@@ -948,9 +948,9 @@ All should pass with zero issues.
 
 ---
 
-**Document Status:** ✅ Ready for Implementation  
-**Approvals:** @Systems_Architect (author), awaiting @QA_Lead (reviewer)  
-**Next Action:** Factory Floor implementation via VSCode Copilot  
+**Document Status:** ✅ Ready for Implementation
+**Approvals:** @Systems_Architect (author), awaiting @QA_Lead (reviewer)
+**Next Action:** Factory Floor implementation via VSCode Copilot
 
 ---
 

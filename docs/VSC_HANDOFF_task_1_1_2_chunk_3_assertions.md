@@ -1,10 +1,10 @@
 # VSC HANDOFF: Task 1.1.2 Chunk 3 - Test Assertion Helpers
 
-**Document ID:** `VSC_HANDOFF_task_1_1_2_chunk_3_assertions.md`  
-**Created:** 2026-02-06  
-**Author:** @Systems_Architect  
-**Reviewed By:** @QA_Lead  
-**Task Reference:** Phase 1 - Test Suite Migration (Task 1.1.2, Chunk 3)  
+**Document ID:** `VSC_HANDOFF_task_1_1_2_chunk_3_assertions.md`
+**Created:** 2026-02-06
+**Author:** @Systems_Architect
+**Reviewed By:** @QA_Lead
+**Task Reference:** Phase 1 - Test Suite Migration (Task 1.1.2, Chunk 3)
 
 ---
 
@@ -54,13 +54,13 @@ def assert_price_within_tolerance(
     msg: Optional[str] = None
 ) -> None:
     """Assert that actual price is within tolerance of expected price.
-    
+
     Args:
         actual: The actual price value
         expected: The expected price value
         tolerance: Acceptable difference (default 1 cent)
         msg: Optional custom error message
-    
+
     Raises:
         AssertionError: If prices differ by more than tolerance
     """
@@ -82,13 +82,13 @@ def assert_position_exists(
     msg: Optional[str] = None
 ) -> None:
     """Assert that a position exists with the expected quantity.
-    
+
     Args:
         portfolio: Dictionary mapping symbols to quantities
         symbol: The symbol to check
         expected_quantity: The expected position quantity
         msg: Optional custom error message
-    
+
     Raises:
         AssertionError: If position doesn't exist or quantity doesn't match
     """
@@ -97,7 +97,7 @@ def assert_position_exists(
         if msg:
             error_msg = f"{msg}: {error_msg}"
         raise AssertionError(error_msg)
-    
+
     actual_quantity = portfolio[symbol]
     if actual_quantity != expected_quantity:
         error_msg = (
@@ -115,12 +115,12 @@ def assert_no_position(
     msg: Optional[str] = None
 ) -> None:
     """Assert that no position exists for the given symbol.
-    
+
     Args:
         portfolio: Dictionary mapping symbols to quantities
         symbol: The symbol to check
         msg: Optional custom error message
-    
+
     Raises:
         AssertionError: If position exists for the symbol
     """
@@ -243,7 +243,7 @@ from tests.helpers.assertions import (
 def test_order_execution(mock_broker):
     # Execute order logic
     result = execute_order(...)
-    
+
     # Use custom assertions for clarity
     assert_price_within_tolerance(result.fill_price, 100.00, tolerance=0.05)
     assert_position_exists(mock_broker.positions, "SPY", 100)
@@ -282,7 +282,7 @@ These helpers are test-only utilities and have no integration with production mo
 ## 8. EDGE CASES & TEST SCENARIOS
 
 ### Edge Case 1: Floating-Point Precision
-**Scenario:** Comparing prices that are results of floating-point arithmetic  
+**Scenario:** Comparing prices that are results of floating-point arithmetic
 **Example:**
 ```python
 # This might fail with strict equality due to FP precision
@@ -292,7 +292,7 @@ assert_price_within_tolerance(calculated, 0.3, tolerance=0.0001)  # Should pass
 **Mitigation:** Default tolerance of 0.01 (1 cent) handles most practical cases
 
 ### Edge Case 2: Empty Portfolio
-**Scenario:** Asserting position absence on empty portfolio  
+**Scenario:** Asserting position absence on empty portfolio
 **Example:**
 ```python
 assert_no_position({}, "SPY")  # Should pass
@@ -300,7 +300,7 @@ assert_no_position({}, "SPY")  # Should pass
 **Expected:** Passes cleanly - no position in empty dict is valid
 
 ### Edge Case 3: Zero Quantity Position
-**Scenario:** Portfolio has symbol key but zero quantity  
+**Scenario:** Portfolio has symbol key but zero quantity
 **Example:**
 ```python
 assert_no_position({"SPY": 0}, "SPY")  # Should pass
@@ -308,7 +308,7 @@ assert_no_position({"SPY": 0}, "SPY")  # Should pass
 **Expected:** Passes - zero quantity treated as no position
 
 ### Edge Case 4: None Values
-**Scenario:** Handling None in price comparisons  
+**Scenario:** Handling None in price comparisons
 **Example:**
 ```python
 assert_price_within_tolerance(None, 100.0)  # Will raise TypeError
@@ -316,7 +316,7 @@ assert_price_within_tolerance(None, 100.0)  # Will raise TypeError
 **Expected:** This is intentional - None prices indicate test setup failure
 
 ### Edge Case 5: Negative Quantities (Short Positions)
-**Scenario:** Future support for short positions  
+**Scenario:** Future support for short positions
 **Example:**
 ```python
 assert_position_exists({"SPY": -100}, "SPY", -100)  # Should work
@@ -324,13 +324,13 @@ assert_position_exists({"SPY": -100}, "SPY", -100)  # Should work
 **Expected:** Current implementation supports this - quantity is just an int
 
 ### Edge Case 6: Custom Error Messages
-**Scenario:** Providing context-specific error messages  
+**Scenario:** Providing context-specific error messages
 **Example:**
 ```python
 assert_position_exists(
-    portfolio, 
-    "SPY", 
-    100, 
+    portfolio,
+    "SPY",
+    100,
     msg="After stop-loss trigger"
 )
 # Failure: "After stop-loss trigger: Position for SPY not found in portfolio..."
@@ -406,7 +406,7 @@ python -c "import tests.helpers.assertions; print(tests.helpers.assertions.__doc
        assert_position_exists,
        assert_no_position,
    )
-   
+
    __all__ = [
        "assert_price_within_tolerance",
        "assert_position_exists",
@@ -467,9 +467,9 @@ All should pass with zero issues.
 
 ---
 
-**Document Status:** ✅ Ready for Implementation  
-**Approvals:** @Systems_Architect (author), @QA_Lead (reviewer)  
-**Next Action:** Factory Floor implementation via VSCode Copilot  
+**Document Status:** ✅ Ready for Implementation
+**Approvals:** @Systems_Architect (author), @QA_Lead (reviewer)
+**Next Action:** Factory Floor implementation via VSCode Copilot
 
 ---
 
