@@ -12,6 +12,7 @@ ib-insync = "*"
 pandas = "*"
 numpy = "*"
 pydantic = "*"
+pydantic-settings = "*"
 aiohttp = "*"
 python-dotenv = "*"
 

@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Daily Gameplan",
+  "type": "object",
+  "required": ["date", "session_id", "strategy", "operator_id"],
+  "properties": {
+    "date": {"type": "string"},
+    "session_id": {"type": "string"},
+    "strategy": {"type": "string"},
+    "operator_id": {"type": "string", "minLength": 1}
+  },
+  "additionalProperties": true
+}
