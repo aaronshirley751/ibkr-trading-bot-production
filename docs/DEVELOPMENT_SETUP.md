@@ -153,7 +153,7 @@ poetry run pytest
 **Expected output:** Pytest version number, then test results
 
 **Note:** For a new project with no tests written yet, you may see:
-- "collected 0 items" 
+- "collected 0 items"
 - Exit code 1 (this is normal - pytest exits with 1 when no tests are found)
 
 **This is expected and acceptable.** Once test files are created in Phase 1, pytest will collect and run them normally.
@@ -234,6 +234,55 @@ poetry run pytest -v
 
 ---
 
+## Pre-commit Hooks
+
+This project uses pre-commit hooks to enforce code quality checks before commits are created.
+
+### Installation
+
+```bash
+# Install dev dependencies (includes pre-commit)
+poetry install
+
+# Install git hooks
+poetry run pre-commit install
+```
+
+### Usage
+
+Hooks run automatically on `git commit`. If checks fail, the commit is blocked:
+
+```bash
+$ git commit -m "Add feature"
+ruff....................................................................Failed
+- hook id: ruff
+- exit code: 1
+
+src/bot/app.py:15:1: E501 Line too long (120 > 100 characters)
+```
+
+Fix the issues and retry the commit.
+
+### Bypass Hooks (Emergency Only)
+
+```bash
+git commit --no-verify -m "Emergency fix"
+```
+
+Warning: Bypassing hooks means CI will catch issues remotely instead.
+
+### Manual Hook Execution
+
+```bash
+# Run hooks on all files
+poetry run pre-commit run --all-files
+
+# Run a specific hook
+poetry run pre-commit run ruff --all-files
+```
+
+---
+
 ## Project Structure
 
 ```
@@ -300,7 +349,7 @@ poetry install
 
 **Impact:** Cosmetic only - does not affect functionality
 
-**Resolution:** Will be addressed in Task 0.4 (CI/CD Framework) by migrating to PEP 621 standard format. No action needed for now.
+**Resolution:** Tracked for a future cleanup to migrate to PEP 621 standard format. No action needed for now.
 
 ---
 
@@ -349,7 +398,7 @@ Once your environment is set up:
 3. **Run the test suite:** `poetry run pytest` to verify everything works
 4. **Start coding:** Follow the project roadmap in the Planner board
 
-**Note:** Pre-commit hooks and CI/CD pipelines will be configured in Task 0.4.
+**Note:** Pre-commit hooks and CI/CD pipelines are configured. See the Pre-commit Hooks section above.
 
 ---
 

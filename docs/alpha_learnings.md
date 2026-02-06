@@ -196,28 +196,28 @@ services:
 ## 5. Failure Modes Observed
 
 ### 1. Gateway Container Crash Loop
-**Trigger:** Using Docker images on ARM64 Pi  
-**Symptom:** "Offline TWS/Gateway version 1015 not installed: can't find jars folder"  
+**Trigger:** Using Docker images on ARM64 Pi
+**Symptom:** "Offline TWS/Gateway version 1015 not installed: can't find jars folder"
 **Resolution:** Use manual Gateway installation (x86_64 binaries with emulation not viable)
 
 ### 2. Buffer Overflow Warnings
-**Trigger:** `snapshot=False` with option contract queries  
-**Symptom:** "Output exceeded limit" + "EBuffer grew to 9351 bytes"  
+**Trigger:** `snapshot=False` with option contract queries
+**Symptom:** "Output exceeded limit" + "EBuffer grew to 9351 bytes"
 **Resolution:** Switch to `snapshot=True` in market_data() method
 
 ### 3. Historical Data Timeouts (100% failure after initial success)
-**Trigger:** 180-second cycle intervals with sustained requests  
-**Symptom:** First 3 cycles succeed, all subsequent cycles timeout  
+**Trigger:** 180-second cycle intervals with sustained requests
+**Symptom:** First 3 cycles succeed, all subsequent cycles timeout
 **Resolution:** Increase interval to 300+ seconds, restart Gateway periodically
 
 ### 4. SSH Authentication Failure
-**Trigger:** Using default username "pi" with custom Raspberry Pi Imager setup  
-**Symptom:** Permission denied (publickey)  
+**Trigger:** Using default username "pi" with custom Raspberry Pi Imager setup
+**Symptom:** Permission denied (publickey)
 **Resolution:** Use custom username from Imager configuration
 
 ### 5. Python 3.11 Build Failures
-**Trigger:** Missing build dependencies for pyenv  
-**Symptom:** OpenSSL, zlib, readline module import errors  
+**Trigger:** Missing build dependencies for pyenv
+**Symptom:** OpenSSL, zlib, readline module import errors
 **Resolution:** Install full build-essential + library dev packages before pyenv install
 
 ---
@@ -367,6 +367,6 @@ Based on alpha learnings, production implementation should:
 
 **Do NOT copy code from alpha repo. This is configuration and observation documentation only.**
 
-**Last Updated:** February 5, 2026  
-**Alpha Repository:** https://github.com/aaronshirley751/ibkr-options-bot (private)  
+**Last Updated:** February 5, 2026
+**Alpha Repository:** https://github.com/aaronshirley751/ibkr-options-bot (private)
 **Production Repository:** https://github.com/aaronshirley751/ibkr-trading-bot-production (this repo)

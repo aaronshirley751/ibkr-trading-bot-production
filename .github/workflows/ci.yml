@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  quality-checks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 2.3.2
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Install dependencies
+        run: poetry install --no-interaction --no-root
+
+      - name: Run Ruff
+        run: poetry run ruff check src/ tests/
+
+      - name: Run Black
+        run: poetry run black --check src/ tests/
+
+      - name: Run Mypy
+        run: poetry run mypy src/
+
+      - name: Run Pytest
+        run: |
+          poetry run pytest tests/ --verbose
+          exit_code=$?
+          if [ $exit_code -eq 5 ]; then
+            echo "No tests collected."
+            exit 0
+          fi
+          exit $exit_code
