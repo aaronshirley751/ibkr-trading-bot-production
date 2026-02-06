@@ -37,3 +37,7 @@ Thumbs.db
 
 # Poetry
 poetry.lock  # Optional: some projects track this, we'll ignore for flexibility
+
+# IBKR snapshot data files (large test fixtures)
+tests/fixtures/ibkr_snapshots/*.json
+!tests/fixtures/ibkr_snapshots/.gitkeep
