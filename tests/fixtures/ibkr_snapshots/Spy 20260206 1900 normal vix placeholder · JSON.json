@@ -1,0 +1,179 @@
+{
+  "metadata": {
+    "capture_script_version": "1.0",
+    "capture_timestamp": "2026-02-06T19:00:00+00:00",
+    "symbol": "SPY",
+    "underlying_price": 689.45,
+    "vix_level": 16.5,
+    "regime": "normal",
+    "market_session": "RTH",
+    "strikes_captured": 5,
+    "expiries_captured": 3,
+    "contracts_total": 30,
+    "note": "PLACEHOLDER DATA - Replace with real IBKR capture Monday 9:30 AM ET"
+  },
+  "underlying": {
+    "symbol": "SPY",
+    "price": 689.45,
+    "bid": 689.42,
+    "ask": 689.48,
+    "last": 689.45,
+    "volume": 45230000
+  },
+  "option_chain": [
+    {
+      "contract": {
+        "symbol": "SPY",
+        "expiry": "20260213",
+        "strike": 685.0,
+        "right": "C",
+        "exchange": "SMART"
+      },
+      "market_data": {
+        "last": 6.85,
+        "bid": 6.80,
+        "ask": 6.90,
+        "bid_size": 150,
+        "ask_size": 200,
+        "volume": 12400,
+        "open_interest": 35200
+      },
+      "greeks": {
+        "delta": 0.65,
+        "gamma": 0.08,
+        "theta": -0.18,
+        "vega": 0.14,
+        "implied_vol": 0.17
+      }
+    },
+    {
+      "contract": {
+        "symbol": "SPY",
+        "expiry": "20260213",
+        "strike": 690.0,
+        "right": "C",
+        "exchange": "SMART"
+      },
+      "market_data": {
+        "last": 3.85,
+        "bid": 3.80,
+        "ask": 3.90,
+        "bid_size": 180,
+        "ask_size": 220,
+        "volume": 18500,
+        "open_interest": 52000
+      },
+      "greeks": {
+        "delta": 0.52,
+        "gamma": 0.09,
+        "theta": -0.15,
+        "vega": 0.13,
+        "implied_vol": 0.18
+      }
+    },
+    {
+      "contract": {
+        "symbol": "SPY",
+        "expiry": "20260213",
+        "strike": 695.0,
+        "right": "C",
+        "exchange": "SMART"
+      },
+      "market_data": {
+        "last": 1.95,
+        "bid": 1.90,
+        "ask": 2.00,
+        "bid_size": 120,
+        "ask_size": 180,
+        "volume": 9800,
+        "open_interest": 28500
+      },
+      "greeks": {
+        "delta": 0.35,
+        "gamma": 0.07,
+        "theta": -0.12,
+        "vega": 0.11,
+        "implied_vol": 0.19
+      }
+    },
+    {
+      "contract": {
+        "symbol": "SPY",
+        "expiry": "20260213",
+        "strike": 685.0,
+        "right": "P",
+        "exchange": "SMART"
+      },
+      "market_data": {
+        "last": 1.42,
+        "bid": 1.38,
+        "ask": 1.46,
+        "bid_size": 100,
+        "ask_size": 150,
+        "volume": 6200,
+        "open_interest": 18900
+      },
+      "greeks": {
+        "delta": -0.35,
+        "gamma": 0.08,
+        "theta": -0.16,
+        "vega": 0.14,
+        "implied_vol": 0.17
+      }
+    },
+    {
+      "contract": {
+        "symbol": "SPY",
+        "expiry": "20260213",
+        "strike": 690.0,
+        "right": "P",
+        "exchange": "SMART"
+      },
+      "market_data": {
+        "last": 3.92,
+        "bid": 3.88,
+        "ask": 3.96,
+        "bid_size": 140,
+        "ask_size": 190,
+        "volume": 11200,
+        "open_interest": 42000
+      },
+      "greeks": {
+        "delta": -0.48,
+        "gamma": 0.09,
+        "theta": -0.14,
+        "vega": 0.13,
+        "implied_vol": 0.18
+      }
+    }
+  ],
+  "historical_bars": [
+    {
+      "timestamp": "2026-02-06T14:30:00",
+      "open": 688.50,
+      "high": 689.75,
+      "low": 688.25,
+      "close": 689.45,
+      "volume": 850000,
+      "vwap": 689.12
+    },
+    {
+      "timestamp": "2026-02-06T14:31:00",
+      "open": 689.45,
+      "high": 689.80,
+      "low": 689.30,
+      "close": 689.62,
+      "volume": 720000,
+      "vwap": 689.55
+    },
+    {
+      "timestamp": "2026-02-06T14:32:00",
+      "open": 689.62,
+      "high": 689.85,
+      "low": 689.50,
+      "close": 689.70,
+      "volume": 680000,
+      "vwap": 689.68
+    }
+  ]
+}

@@ -1,0 +1,179 @@
+{
+  "metadata": {
+    "capture_script_version": "1.0",
+    "capture_timestamp": "2026-02-06T19:10:00+00:00",
+    "symbol": "IWM",
+    "underlying_price": 198.75,
+    "vix_level": 16.5,
+    "regime": "normal",
+    "market_session": "RTH",
+    "strikes_captured": 5,
+    "expiries_captured": 3,
+    "contracts_total": 30,
+    "note": "PLACEHOLDER DATA - Replace with real IBKR capture Monday 9:30 AM ET"
+  },
+  "underlying": {
+    "symbol": "IWM",
+    "price": 198.75,
+    "bid": 198.73,
+    "ask": 198.77,
+    "last": 198.75,
+    "volume": 18200000
+  },
+  "option_chain": [
+    {
+      "contract": {
+        "symbol": "IWM",
+        "expiry": "20260213",
+        "strike": 198.0,
+        "right": "C",
+        "exchange": "SMART"
+      },
+      "market_data": {
+        "last": 2.45,
+        "bid": 2.40,
+        "ask": 2.50,
+        "bid_size": 80,
+        "ask_size": 120,
+        "volume": 4200,
+        "open_interest": 12800
+      },
+      "greeks": {
+        "delta": 0.58,
+        "gamma": 0.09,
+        "theta": -0.14,
+        "vega": 0.10,
+        "implied_vol": 0.20
+      }
+    },
+    {
+      "contract": {
+        "symbol": "IWM",
+        "expiry": "20260213",
+        "strike": 199.0,
+        "right": "C",
+        "exchange": "SMART"
+      },
+      "market_data": {
+        "last": 1.85,
+        "bid": 1.80,
+        "ask": 1.90,
+        "bid_size": 100,
+        "ask_size": 140,
+        "volume": 6800,
+        "open_interest": 18500
+      },
+      "greeks": {
+        "delta": 0.50,
+        "gamma": 0.10,
+        "theta": -0.12,
+        "vega": 0.09,
+        "implied_vol": 0.21
+      }
+    },
+    {
+      "contract": {
+        "symbol": "IWM",
+        "expiry": "20260213",
+        "strike": 200.0,
+        "right": "C",
+        "exchange": "SMART"
+      },
+      "market_data": {
+        "last": 1.35,
+        "bid": 1.30,
+        "ask": 1.40,
+        "bid_size": 70,
+        "ask_size": 110,
+        "volume": 3900,
+        "open_interest": 10200
+      },
+      "greeks": {
+        "delta": 0.42,
+        "gamma": 0.09,
+        "theta": -0.11,
+        "vega": 0.08,
+        "implied_vol": 0.22
+      }
+    },
+    {
+      "contract": {
+        "symbol": "IWM",
+        "expiry": "20260213",
+        "strike": 198.0,
+        "right": "P",
+        "exchange": "SMART"
+      },
+      "market_data": {
+        "last": 1.92,
+        "bid": 1.88,
+        "ask": 1.96,
+        "bid_size": 60,
+        "ask_size": 95,
+        "volume": 2800,
+        "open_interest": 8600
+      },
+      "greeks": {
+        "delta": -0.42,
+        "gamma": 0.09,
+        "theta": -0.13,
+        "vega": 0.10,
+        "implied_vol": 0.20
+      }
+    },
+    {
+      "contract": {
+        "symbol": "IWM",
+        "expiry": "20260213",
+        "strike": 199.0,
+        "right": "P",
+        "exchange": "SMART"
+      },
+      "market_data": {
+        "last": 2.38,
+        "bid": 2.34,
+        "ask": 2.42,
+        "bid_size": 75,
+        "ask_size": 110,
+        "volume": 4100,
+        "open_interest": 12400
+      },
+      "greeks": {
+        "delta": -0.50,
+        "gamma": 0.10,
+        "theta": -0.11,
+        "vega": 0.09,
+        "implied_vol": 0.21
+      }
+    }
+  ],
+  "historical_bars": [
+    {
+      "timestamp": "2026-02-06T14:30:00",
+      "open": 198.40,
+      "high": 198.90,
+      "low": 198.30,
+      "close": 198.75,
+      "volume": 320000,
+      "vwap": 198.62
+    },
+    {
+      "timestamp": "2026-02-06T14:31:00",
+      "open": 198.75,
+      "high": 199.00,
+      "low": 198.70,
+      "close": 198.85,
+      "volume": 290000,
+      "vwap": 198.82
+    },
+    {
+      "timestamp": "2026-02-06T14:32:00",
+      "open": 198.85,
+      "high": 199.10,
+      "low": 198.80,
+      "close": 198.95,
+      "volume": 275000,
+      "vwap": 198.92
+    }
+  ]
+}

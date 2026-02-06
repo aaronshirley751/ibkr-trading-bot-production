@@ -1,0 +1,129 @@
+{
+  "metadata": {
+    "capture_script_version": "1.0",
+    "capture_timestamp": "2026-02-06T19:05:00+00:00",
+    "symbol": "QQQ",
+    "underlying_price": 622.30,
+    "vix_level": 16.5,
+    "regime": "normal",
+    "market_session": "RTH",
+    "strikes_captured": 5,
+    "expiries_captured": 3,
+    "contracts_total": 30,
+    "note": "PLACEHOLDER DATA - Replace with real IBKR capture Monday 9:30 AM ET"
+  },
+  "underlying": {
+    "symbol": "QQQ",
+    "price": 622.30,
+    "bid": 622.28,
+    "ask": 622.32,
+    "last": 622.30,
+    "volume": 28450000
+  },
+  "option_chain": [
+    {
+      "contract": {
+        "symbol": "QQQ",
+        "expiry": "20260213",
+        "strike": 620.0,
+        "right": "C",
+        "exchange": "SMART"
+      },
+      "market_data": {
+        "last": 5.45,
+        "bid": 5.40,
+        "ask": 5.50,
+        "bid_size": 120,
+        "ask_size": 180,
+        "volume": 8900,
+        "open_interest": 22500
+      },
+      "greeks": {
+        "delta": 0.62,
+        "gamma": 0.07,
+        "theta": -0.16,
+        "vega": 0.12,
+        "implied_vol": 0.18
+      }
+    },
+    {
+      "contract": {
+        "symbol": "QQQ",
+        "expiry": "20260213",
+        "strike": 625.0,
+        "right": "C",
+        "exchange": "SMART"
+      },
+      "market_data": {
+        "last": 3.20,
+        "bid": 3.15,
+        "ask": 3.25,
+        "bid_size": 150,
+        "ask_size": 200,
+        "volume": 12400,
+        "open_interest": 35800
+      },
+      "greeks": {
+        "delta": 0.48,
+        "gamma": 0.08,
+        "theta": -0.14,
+        "vega": 0.11,
+        "implied_vol": 0.19
+      }
+    },
+    {
+      "contract": {
+        "symbol": "QQQ",
+        "expiry": "20260213",
+        "strike": 620.0,
+        "right": "P",
+        "exchange": "SMART"
+      },
+      "market_data": {
+        "last": 2.85,
+        "bid": 2.80,
+        "ask": 2.90,
+        "bid_size": 90,
+        "ask_size": 140,
+        "volume": 5200,
+        "open_interest": 15600
+      },
+      "greeks": {
+        "delta": -0.38,
+        "gamma": 0.07,
+        "theta": -0.15,
+        "vega": 0.12,
+        "implied_vol": 0.18
+      }
+    }
+  ],
+  "historical_bars": [
+    {
+      "timestamp": "2026-02-06T14:30:00",
+      "open": 621.80,
+      "high": 622.50,
+      "low": 621.65,
+      "close": 622.30,
+      "volume": 520000,
+      "vwap": 622.15
+    },
+    {
+      "timestamp": "2026-02-06T14:31:00",
+      "open": 622.30,
+      "high": 622.60,
+      "low": 622.20,
+      "close": 622.45,
+      "volume": 480000,
+      "vwap": 622.38
+    },
+    {
+      "timestamp": "2026-02-06T14:32:00",
+      "open": 622.45,
+      "high": 622.70,
+      "low": 622.35,
+      "close": 622.55,
+      "volume": 450000,
+      "vwap": 622.52
+    }
+  ]
+}
