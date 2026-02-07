@@ -21,7 +21,15 @@ from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest
-from ib_insync import IB, Stock, BarData, Ticker
+from ib_insync import Stock, BarData, Ticker
+
+from src.broker import (
+    IBKRConnection,
+    ContractManager,
+    MarketDataProvider,
+    ContractNotQualifiedError,
+    SnapshotModeViolationError,
+)
 
 
 class TestMarketDataRetrieval:
@@ -32,7 +40,7 @@ class TestMarketDataRetrieval:
         🔴 CRITICAL ALPHA LEARNING: snapshot=True MUST be enforced.
 
         GIVEN: Request for real-time market data (SPY, QQQ)
-        WHEN: reqMktData() called
+        WHEN: provider.request_market_data() called
         THEN: snapshot parameter MUST be True
         AND: Test FAILS if snapshot=False (prevent buffer overflow regression)
 
@@ -40,26 +48,38 @@ class TestMarketDataRetrieval:
         Regression here means buffer overflow in production.
         """
         # Arrange
-        mock_ib = Mock(spec=IB)
-        mock_ticker = Mock(spec=Ticker)
-        mock_ticker.marketPrice.return_value = 685.50
-        mock_ib.reqMktData.return_value = mock_ticker
+        connection = IBKRConnection()
+        contract_manager = ContractManager(connection)
+        provider = MarketDataProvider(connection, contract_manager, snapshot_mode=True)
 
-        contract = Stock("SPY", "SMART", "USD")
+        with patch.object(connection, "_ib") as mock_ib:
+            mock_ib.isConnected.return_value = True
 
-        # Act
-        with patch("ib_insync.IB", return_value=mock_ib):
-            ib = IB()
-            ib.reqMktData(contract, "", snapshot=True, regulatorySnapshot=False)
+            # Mock qualified contract
+            contract = Stock("SPY", "SMART", "USD")
+            contract.conId = 756733
 
-        # Assert: CRITICAL - snapshot parameter MUST be True
-        mock_ib.reqMktData.assert_called_once()
-        call_kwargs = mock_ib.reqMktData.call_args[1]
+            # Mock market data response
+            mock_ticker = Mock(spec=Ticker)
+            mock_ticker.bid = 685.50
+            mock_ticker.ask = 685.52
+            mock_ticker.last = 685.51
+            mock_ticker.volume = 1250000
+            mock_ticker.time = datetime.now(timezone.utc)
+            mock_ib.reqMktData.return_value = mock_ticker
+            mock_ib.waitOnUpdate.return_value = None
 
-        assert "snapshot" in call_kwargs, "🔴 CRITICAL: snapshot parameter missing from call"
-        assert (
-            call_kwargs["snapshot"] is True
-        ), "🔴 CRITICAL: snapshot MUST be True to prevent buffer overflow"
+            # Act
+            _ = provider.request_market_data(contract, timeout=30)
+
+            # Assert: CRITICAL - snapshot parameter MUST be True
+            mock_ib.reqMktData.assert_called_once()
+            call_args, call_kwargs = mock_ib.reqMktData.call_args
+
+            assert "snapshot" in call_kwargs, "🔴 CRITICAL: snapshot parameter missing from call"
+            assert (
+                call_kwargs["snapshot"] is True
+            ), "🔴 CRITICAL: snapshot MUST be True to prevent buffer overflow"
 
     def test_snapshot_false_is_forbidden(self) -> None:
         """
@@ -68,18 +88,13 @@ class TestMarketDataRetrieval:
         This test documents that snapshot=False is a CRITICAL BUG.
         If this test ever needs to be changed, consult @Lead_Quant first.
         """
-        # This test documents expected behavior: snapshot=True always
-        mock_ib = Mock(spec=IB)
-        contract = Stock("SPY", "SMART", "USD")
+        # Arrange
+        connection = IBKRConnection()
+        contract_manager = ContractManager(connection)
 
-        # Act: Call with snapshot=True (correct behavior)
-        with patch("ib_insync.IB", return_value=mock_ib):
-            ib = IB()
-            ib.reqMktData(contract, "", snapshot=True)
-
-        # Assert
-        call_kwargs = mock_ib.reqMktData.call_args[1]
-        assert call_kwargs["snapshot"] is True, "snapshot=False causes buffer overflow - NEVER USE"
+        # Act & Assert: MarketDataProvider with snapshot_mode=False MUST raise error
+        with pytest.raises(SnapshotModeViolationError, match="snapshot_mode=False is FORBIDDEN"):
+            MarketDataProvider(connection, contract_manager, snapshot_mode=False)
 
     def test_market_data_validation(self) -> None:
         """Test market data response validation.
@@ -170,53 +185,38 @@ class TestMarketDataRetrieval:
         AND: Unqualified contracts raise appropriate error
         """
         # Arrange
-        mock_ib = Mock(spec=IB)
+        connection = IBKRConnection()
+        contract_manager = ContractManager(connection)
+        provider = MarketDataProvider(connection, contract_manager, snapshot_mode=True)
+
+        # Unqualified contract (no conId)
         unqualified_contract = Stock("SPY", "SMART", "USD")
+        # Don't set conId - contract remains unqualified
 
-        # Mock qualification process
-        qualified_contract = Stock("SPY", "SMART", "USD")
-        qualified_contract.conId = 756733  # SPY conId
-        mock_ib.qualifyContracts.return_value = [qualified_contract]
+        with patch.object(connection, "_ib") as mock_ib:
+            mock_ib.isConnected.return_value = True
 
-        mock_ticker = Mock(spec=Ticker)
-        mock_ib.reqMktData.return_value = mock_ticker
-
-        # Act
-        with patch("ib_insync.IB", return_value=mock_ib):
-            ib = IB()
-
-            # CRITICAL: Must qualify before requesting data
-            contracts = ib.qualifyContracts(unqualified_contract)
-            assert len(contracts) > 0, "Contract qualification failed"
-
-            qualified = contracts[0]
-            assert hasattr(qualified, "conId"), "Qualified contract must have conId"
-            assert qualified.conId > 0, "conId must be valid"
-
-            # Only then request market data
-            ib.reqMktData(qualified, "", snapshot=True)
-
-        # Assert
-        mock_ib.qualifyContracts.assert_called_once()
-        mock_ib.reqMktData.assert_called_once()
+            # Act & Assert: Unqualified contract MUST raise error
+            with pytest.raises(
+                ContractNotQualifiedError, match="must be qualified before requesting data"
+            ):
+                provider.request_market_data(unqualified_contract, timeout=30)
 
     def test_unqualified_contract_rejected(self) -> None:
         """Test that unqualified contracts are rejected."""
         # Arrange
-        mock_ib = Mock(spec=IB)
-        unqualified_contract = Stock("INVALID_SYMBOL", "SMART", "USD")
+        connection = IBKRConnection()
+        contract_manager = ContractManager(connection)
 
-        # Mock failed qualification
-        mock_ib.qualifyContracts.return_value = []  # No results = failed qualification
+        Stock("INVALID_SYMBOL", "SMART", "USD")
 
-        # Act
-        with patch("ib_insync.IB", return_value=mock_ib):
-            ib = IB()
-            contracts = ib.qualifyContracts(unqualified_contract)
+        with patch.object(connection, "_ib") as mock_ib:
+            # Mock failed qualification
+            mock_ib.qualifyContracts.return_value = []  # No results = failed qualification
 
-        # Assert
-        assert len(contracts) == 0, "Invalid contracts should not qualify"
-        mock_ib.qualifyContracts.assert_called_once()
+            # Act &Assert: Should raise ContractQualificationError
+            with pytest.raises(Exception):  # ContractQualificationError or empty list
+                contract_manager.qualify_contract("INVALID_SYMBOL")
 
     def test_market_data_error_handling(self) -> None:
         """Test error handling for market data requests.
@@ -228,24 +228,30 @@ class TestMarketDataRetrieval:
         AND: Strategy C activated on critical errors
         """
         # Arrange
-        mock_ib = Mock(spec=IB)
+        connection = IBKRConnection()
+        contract_manager = ContractManager(connection)
+        provider = MarketDataProvider(connection, contract_manager, snapshot_mode=True)
+
+        contract = Stock("INVALID", "SMART", "USD")
+        contract.conId = 999999  # Qualified but invalid
+
         error_code = 200  # No security definition found
         error_msg = "No security definition has been found for the request"
 
-        # Simulate error callback
-        def trigger_error(*args: Any, **kwargs: Any) -> None:
-            raise ValueError(f"Error {error_code}: {error_msg}")
+        with patch.object(connection, "_ib") as mock_ib:
+            mock_ib.isConnected.return_value = True
 
-        mock_ib.reqMktData.side_effect = trigger_error
+            # Simulate error callback
+            def trigger_error(*args: Any, **kwargs: Any) -> None:
+                raise ValueError(f"Error {error_code}: {error_msg}")
 
-        contract = Stock("INVALID", "SMART", "USD")
+            mock_ib.reqMktData.side_effect = trigger_error
 
-        # Act & Assert
-        with patch("ib_insync.IB", return_value=mock_ib):
-            ib = IB()
-
-            with pytest.raises(ValueError, match=f"Error {error_code}"):
-                ib.reqMktData(contract, "", snapshot=True)
+            # Act & Assert: Provider wraps ValueError in MarketDataError
+            with pytest.raises(
+                Exception, match=f"Error {error_code}"
+            ):  # MarketDataError or ValueError
+                provider.request_market_data(contract, timeout=30)
 
     def test_missing_field_handling(self) -> None:
         """Test handling of market data with missing fields."""
@@ -269,38 +275,51 @@ class TestMarketDataRetrieval:
 
         GIVEN: Multiple simultaneous market data requests
         WHEN: Requests submitted for SPY, QQQ, IWM
-        THEN: Each tracked with unique reqId
+        ...THEN: Each tracked with unique reqId
         AND: No cross-contamination of data streams
         """
         # Arrange
-        mock_ib = Mock(spec=IB)
+        connection = IBKRConnection()
+        contract_manager = ContractManager(connection)
+        provider = MarketDataProvider(connection, contract_manager, snapshot_mode=True)
 
         symbols = ["SPY", "QQQ", "IWM"]
-        contracts = [Stock(symbol, "SMART", "USD") for symbol in symbols]
+        contracts = []
+        for symbol in symbols:
+            contract = Stock(symbol, "SMART", "USD")
+            contract.conId = hash(symbol) % 1000000  # Set as qualified
+            contracts.append(contract)
 
-        # Mock different tickers for each symbol
-        mock_tickers = [Mock(spec=Ticker) for _ in symbols]
-        for i, ticker in enumerate(mock_tickers):
-            ticker.contract = contracts[i]
-            ticker.last = 100.0 * (i + 1)  # Different prices
+        with patch.object(connection, "_ib") as mock_ib:
+            mock_ib.isConnected.return_value = True
 
-        mock_ib.reqMktData.side_effect = mock_tickers
+            # Mock different tickers for each symbol
+            mock_tickers = []
+            for i, symbol in enumerate(symbols):
+                ticker = Mock(spec=Ticker)
+                ticker.bid = 100.0 * (i + 1)
+                ticker.ask = 100.0 * (i + 1) + 0.02
+                ticker.last = 100.0 * (i + 1) + 0.01
+                ticker.volume = 1000000
+                ticker.time = datetime.now(timezone.utc)
+                mock_tickers.append(ticker)
 
-        # Act
-        with patch("ib_insync.IB", return_value=mock_ib):
-            ib = IB()
+            mock_ib.reqMktData.side_effect = mock_tickers
+            mock_ib.waitOnUpdate.return_value = None
+
+            # Act
             results = []
-
             for contract in contracts:
-                ticker = ib.reqMktData(contract, "", snapshot=True)  # type: ignore[assignment]
-                results.append(ticker)
+                data = provider.request_market_data(contract, timeout=30)
+                results.append(data)
 
-        # Assert: All requests made
-        assert mock_ib.reqMktData.call_count == 3
+            # Assert: All requests made
+            assert mock_ib.reqMktData.call_count == 3
 
-        # Assert: Each result is unique
-        assert len(results) == 3
-        assert all(isinstance(r, Mock) for r in results)
+            # Assert: Each result is unique
+            assert len(results) == 3
+            prices = [r["last"] for r in results]
+            assert len(set(prices)) == 3, "Each symbol should have unique price"
 
     def test_market_data_bid_ask_spread_validation(self) -> None:
         """Test bid/ask spread is reasonable."""
@@ -345,48 +364,31 @@ class TestHistoricalData:
         🔴 CRITICAL ALPHA LEARNING: 1-hour RTH-only windows.
 
         GIVEN: Request for historical bars (SPY, 1-hour, RTH)
-        WHEN: reqHistoricalData() called
+        WHEN: provider.request_historical_data() called
         THEN: Duration parameter = "3600 S" (1 hour)
-        AND: useRTH parameter = True
-        AND: Response contains bars with OHLCV data
+        AND: use_rth parameter = True (default)
+        AND: use_rth=False raises ValueError
         """
         # Arrange
-        mock_ib = Mock(spec=IB)
+        connection = IBKRConnection()
+        contract_manager = ContractManager(connection)
+        provider = MarketDataProvider(connection, contract_manager, snapshot_mode=True)
+
         contract = Stock("SPY", "SMART", "USD")
+        contract.conId = 756733  # Qualified
 
-        # Mock historical bars response
-        mock_bars = [
-            BarData(
-                date=datetime.now(timezone.utc) - timedelta(minutes=5 * i),
-                open=685.0,
-                high=686.0,
-                low=684.5,
-                close=685.5,
-                volume=100000,
-                average=685.25,
-                barCount=50,
-            )
-            for i in range(12)  # 12 bars = 1 hour of 5-min bars
-        ]
-        mock_ib.reqHistoricalData.return_value = mock_bars
+        with patch.object(connection, "_ib") as mock_ib:
+            mock_ib.isConnected.return_value = True
 
-        # Act
-        with patch("ib_insync.IB", return_value=mock_ib):
-            ib = IB()
-            _ = ib.reqHistoricalData(
-                contract,
-                endDateTime="",
-                durationStr="3600 S",  # 1 hour
-                barSizeSetting="5 mins",
-                whatToShow="TRADES",
-                useRTH=True,  # CRITICAL: RTH only
-                formatDate=1,
-            )
-
-        # Assert: CRITICAL - useRTH must be True
-        call_kwargs = mock_ib.reqHistoricalData.call_args[1]
-        assert call_kwargs["useRTH"] is True, "🔴 CRITICAL: useRTH MUST be True"
-        assert call_kwargs["durationStr"] == "3600 S", "Duration must be 1 hour (3600 seconds)"
+            # Act & Assert: use_rth=False MUST raise error
+            with pytest.raises(ValueError, match="use_rth=False is FORBIDDEN"):
+                provider.request_historical_data(
+                    contract,
+                    duration="3600 S",
+                    bar_size="5 mins",
+                    use_rth=False,  # FORBIDDEN
+                    timeout=30,
+                )
 
     def test_historical_data_timeout_propagation(self) -> None:
         """
@@ -399,30 +401,28 @@ class TestHistoricalData:
         AND: No silent hang conditions
         """
         # Arrange
-        mock_ib = Mock(spec=IB)
+        connection = IBKRConnection()
+        contract_manager = ContractManager(connection)
+        provider = MarketDataProvider(connection, contract_manager, snapshot_mode=True)
+
         contract = Stock("SPY", "SMART", "USD")
+        contract.conId = 756733  # Qualified
 
-        # Simulate timeout
-        def slow_historical_data(*args: Any, **kwargs: Any) -> None:
-            timeout = kwargs.get("timeout", 60)
-            if timeout < 35:  # If timeout is short, raise timeout error
-                raise TimeoutError(f"Historical data timeout after {timeout}s")
+        with patch.object(connection, "_ib") as mock_ib:
+            mock_ib.isConnected.return_value = True
 
-        mock_ib.reqHistoricalData.side_effect = slow_historical_data
+            # Simulate timeout
+            mock_ib.reqHistoricalData.side_effect = TimeoutError(
+                "Historical data timeout after 30s"
+            )
 
-        # Act & Assert
-        with patch("ib_insync.IB", return_value=mock_ib):
-            ib = IB()
-
+            # Act & Assert
             with pytest.raises(TimeoutError, match="Historical data timeout"):
-                ib.reqHistoricalData(
+                provider.request_historical_data(
                     contract,
-                    endDateTime="",
-                    durationStr="3600 S",
-                    barSizeSetting="5 mins",
-                    whatToShow="TRADES",
-                    useRTH=True,
-                    formatDate=1,
+                    duration="3600 S",
+                    bar_size="5 mins",
+                    use_rth=True,
                     timeout=30,  # Short timeout for testing
                 )
 
@@ -454,30 +454,25 @@ class TestHistoricalData:
         assert bar.low <= bar.close, "Low must be <= Close"
 
     def test_extended_hours_rejected(self) -> None:
-        """Test that extended hours (useRTH=False) is NOT used.
+        """Test that extended hours (use_rth=False) is NOT used.
 
         This documents that extended hours data is NOT part of alpha strategy.
         If requirements change, consult @Lead_Quant first.
         """
-        # This test documents expected behavior: useRTH=True always
-        mock_ib = Mock(spec=IB)
+        # Arrange
+        connection = IBKRConnection()
+        contract_manager = ContractManager(connection)
+        provider = MarketDataProvider(connection, contract_manager, snapshot_mode=True)
+
         contract = Stock("SPY", "SMART", "USD")
+        contract.conId = 756733  # Qualified
 
-        # Act: Call with useRTH=True (correct behavior)
-        with patch("ib_insync.IB", return_value=mock_ib):
-            ib = IB()
-            ib.reqHistoricalData(
+        # Act & Assert: use_rth=False MUST raise ValueError
+        with pytest.raises(ValueError, match="use_rth=False is FORBIDDEN"):
+            provider.request_historical_data(
                 contract,
-                endDateTime="",
-                durationStr="3600 S",
-                barSizeSetting="5 mins",
-                whatToShow="TRADES",
-                useRTH=True,  # Always True per alpha learnings
-                formatDate=1,
+                duration="3600 S",
+                bar_size="5 mins",
+                use_rth=False,  # FORBIDDEN per alpha learnings
+                timeout=30,
             )
-
-        # Assert
-        call_kwargs = mock_ib.reqHistoricalData.call_args[1]
-        assert (
-            call_kwargs["useRTH"] is True
-        ), "Extended hours (useRTH=False) is NOT used in alpha strategy"
