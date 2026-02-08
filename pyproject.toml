@@ -35,6 +35,7 @@ strict = true
 module = "tests.*"
 disallow_untyped_calls = false
 disallow_untyped_defs = false
+disallow_incomplete_defs = false
 
 [build-system]
 requires = ["poetry-core>=1.6.0"]
