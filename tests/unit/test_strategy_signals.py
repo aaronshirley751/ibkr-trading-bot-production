@@ -104,7 +104,10 @@ def mean_reverting_bars_oversold() -> List[Dict[str, Any]]:
         if i < 20:
             price = base_price - (i * 0.40)  # Sharp decline
         else:
-            price = base_price - (20 * 0.40) + ((i - 20) * 0.05)  # Stabilizing
+            # Sawtooth: alternating -0.25/+0.10 (net decline, preserves RSI bidirectionality)
+            stab_deltas = [-0.25, 0.10] * 5  # 10 values for bars 20-29
+            cum_delta = sum(stab_deltas[: i - 20 + 1])
+            price = base_price - (20 * 0.40) + cum_delta
         bars.append(
             {
                 "timestamp": (base_time + timedelta(minutes=i)).isoformat(),
@@ -132,7 +135,10 @@ def mean_reverting_bars_overbought() -> List[Dict[str, Any]]:
         if i < 20:
             price = base_price + (i * 0.40)  # Sharp rally
         else:
-            price = base_price + (20 * 0.40) - ((i - 20) * 0.05)  # Stabilizing
+            # Sawtooth: alternating +0.25/-0.10 (net rise, preserves RSI bidirectionality)
+            stab_deltas = [0.25, -0.10] * 5  # 10 values for bars 20-29
+            cum_delta = sum(stab_deltas[: i - 20 + 1])
+            price = base_price + (20 * 0.40) + cum_delta
         bars.append(
             {
                 "timestamp": (base_time + timedelta(minutes=i)).isoformat(),
@@ -337,6 +343,7 @@ class TestRSICalculation:
 
         rsi = calculate_rsi(trending_up_bars, period=14)
 
+        assert rsi is not None, "RSI should not be None for sufficient data"
         assert 40 <= rsi <= 75, f"RSI {rsi} not in expected momentum range"
 
     def test_rsi_oversold_for_strategy_b(self, mean_reverting_bars_oversold):
@@ -349,6 +356,7 @@ class TestRSICalculation:
 
         rsi = calculate_rsi(mean_reverting_bars_oversold, period=14)
 
+        assert rsi is not None, "RSI should not be None for sufficient data"
         assert rsi < 35, f"RSI {rsi} not in oversold range"
 
     def test_rsi_overbought_for_strategy_b(self, mean_reverting_bars_overbought):
@@ -361,6 +369,7 @@ class TestRSICalculation:
 
         rsi = calculate_rsi(mean_reverting_bars_overbought, period=14)
 
+        assert rsi is not None, "RSI should not be None for sufficient data"
         assert rsi > 65, f"RSI {rsi} not in overbought range"
 
     def test_rsi_returns_float_between_0_and_100(self, trending_up_bars):
