@@ -25,6 +25,7 @@ from .config import (
     StrategyConfig,
 )
 from .strategy_a import StrategyA
+from .strategy_b import StrategyB
 
 __all__ = [
     # Core classes
@@ -41,4 +42,5 @@ __all__ = [
     "StrategyCConfig",
     # Concrete strategies
     "StrategyA",
+    "StrategyB",
 ]
