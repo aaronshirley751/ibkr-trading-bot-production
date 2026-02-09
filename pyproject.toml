@@ -24,6 +24,7 @@ black = "*"
 ruff = "*"
 mypy = "*"
 pre-commit = "^4.0.1"
+types-pyyaml = "^6.0.12.20250915"
 
 [tool.black]
 line-length = 100

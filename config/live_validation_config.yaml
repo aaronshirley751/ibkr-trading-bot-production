@@ -1,0 +1,110 @@
+# Live Validation Configuration
+# For use with Task 1.1.8 Live Validation Suite
+#
+# CRITICAL: This configuration is for PAPER TRADING ONLY
+# Never execute live validation against live trading accounts
+
+# Gateway Connection Settings
+gateway:
+  host: "127.0.0.1"
+  port: 4002  # Paper trading port (NEVER use 7497 for validation)
+  client_id: 1  # Unique per bot instance
+  timeout: 30  # Connection timeout (seconds)
+
+# Paper Trading Account Configuration
+paper_trading:
+  account_type: "PAPER"  # Enforce paper trading only
+  initial_capital: 100000  # Expected paper account balance ($100k)
+
+  # Safety checks - validation will fail if these are violated
+  safety_checks:
+    verify_account_type: true  # Fail if not PAPER account
+    verify_virtual_capital: true  # Ensure using virtual capital only
+
+# Validation Test Configuration
+validation:
+  market_hours_required: true  # Enforce market hours check (9:30 AM - 4:00 PM ET)
+  min_session_duration: 7200  # Minimum validation session (2 hours = 7200 seconds)
+  max_retry_attempts: 3  # Max retries for transient failures
+  exponential_backoff_base: 2  # Base for exponential backoff (2^attempt)
+
+# Test Contract Definitions
+# These contracts are used across multiple test files
+test_contracts:
+  # Equity contracts for market data tests
+  spy:
+    symbol: "SPY"
+    secType: "STK"
+    exchange: "SMART"
+    currency: "USD"
+
+  qqq:
+    symbol: "QQQ"
+    secType: "STK"
+    exchange: "SMART"
+    currency: "USD"
+
+  iwm:
+    symbol: "IWM"
+    secType: "STK"
+    exchange: "SMART"
+    currency: "USD"
+
+  # Option contract for order execution tests
+  # NOTE: Update lastTradeDateOrContractMonth weekly to ensure contract is active
+  spy_weekly_call:
+    symbol: "SPY"
+    secType: "OPT"
+    exchange: "SMART"
+    currency: "USD"
+    lastTradeDateOrContractMonth: "20260220"  # UPDATE WEEKLY (next Friday)
+    strike: 600.0  # Deep OTM for safety (low cost, won't actually exercise)
+    right: "CALL"
+
+# Data Quality Thresholds
+thresholds:
+  quote_freshness_seconds: 5  # Max age for quote to be considered fresh
+  stream_quality_min_quotes: 50  # Min quotes per 60-second window (83% success rate)
+  order_fill_timeout_seconds: 30  # Max time to wait for paper trading order fill
+  historical_data_timeout_seconds: 30  # Max time for historical data request
+  min_bars_per_day: 70  # Min bars expected for 1-day / 5-min request (~78 bars RTH)
+
+# Market Hours Configuration (Eastern Time)
+market_hours:
+  timezone: "America/New_York"
+  regular_trading_hours:
+    open: "09:30"
+    close: "16:00"
+  extended_hours:
+    enabled: false  # Extended hours not required for validation
+    pre_market_open: "04:00"
+    after_hours_close: "20:00"
+
+# Logging Configuration for Validation
+logging:
+  level: "DEBUG"  # Verbose logging for validation troubleshooting
+  log_file: "logs/live_validation/validation_session.log"
+  console_output: true
+  include_timestamps: true
+  include_order_details: true  # Log full order lifecycle
+
+# Cleanup Configuration
+cleanup:
+  cancel_all_orders_on_exit: true  # Cancel orders at end of test session
+  close_all_positions_on_exit: false  # Keep positions for manual review
+  disconnect_gracefully: true  # Proper Gateway disconnect
+  archive_logs: true  # Archive logs for Phase 1 sign-off
+
+# Performance Monitoring
+monitoring:
+  track_connection_latency: true
+  track_quote_freshness: true
+  track_order_fill_time: true
+  report_metrics_on_exit: true
+
+# Error Handling
+error_handling:
+  retry_on_network_error: true
+  retry_on_rate_limit: true
+  fail_fast_on_auth_error: true  # Don't retry auth failures
+  fail_fast_on_account_type_mismatch: true  # Safety: stop if not PAPER

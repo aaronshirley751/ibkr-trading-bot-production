@@ -79,12 +79,12 @@ def main() -> None:
     signal2 = strategy.evaluate(data2)
     print(f"   ✅ Direction: {signal2.direction} (expected: BUY)")
     print(f"   ✅ Confidence: {signal2.confidence:.2f}")
-    
+
     # Type assertions - these fields are guaranteed non-None for BUY signals
     assert signal2.entry_price is not None
     assert signal2.stop_loss is not None
     assert signal2.take_profit is not None
-    
+
     print(f"   ✅ Entry price: ${signal2.entry_price:.2f}")
     print(
         f"   ✅ Stop loss: ${signal2.stop_loss:.2f} ({((signal2.stop_loss - signal2.entry_price) / signal2.entry_price * 100):.1f}%)"
@@ -186,12 +186,12 @@ def main() -> None:
     signal_bearish = strategy.evaluate(data_bearish)
     print(f"   ✅ Direction: {signal_bearish.direction} (expected: SELL)")
     print(f"   ✅ Confidence: {signal_bearish.confidence:.2f}")
-    
+
     # Type assertions - these fields are guaranteed non-None for SELL signals
     assert signal_bearish.entry_price is not None
     assert signal_bearish.stop_loss is not None
     assert signal_bearish.take_profit is not None
-    
+
     print(f"   ✅ Entry price: ${signal_bearish.entry_price:.2f}")
     print(
         f"   ✅ Stop loss: ${signal_bearish.stop_loss:.2f} ({((signal_bearish.stop_loss - signal_bearish.entry_price) / signal_bearish.entry_price * 100):.1f}%)"
