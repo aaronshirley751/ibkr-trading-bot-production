@@ -13,8 +13,13 @@ Strategy C (cash preservation). There are no exceptions to this rule.
 import copy
 import json
 import logging
+import time
+from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Optional
+
+import jsonschema
+from jsonschema import ValidationError
 
 from src.strategy.exceptions import GameplanValidationError  # noqa: F401 — re-export
 
@@ -33,6 +38,7 @@ DEFAULT_STRATEGY_C: Dict[str, Any] = {
     "regime": "unknown",
     "strategy": "C",
     "symbols": [],
+    "operator_id": "CSATSPRIM",
     "position_size_multiplier": 0.0,
     "vix_at_analysis": None,
     "vix_source_verified": False,
@@ -49,7 +55,9 @@ DEFAULT_STRATEGY_C: Dict[str, Any] = {
     },
     "hard_limits": {
         "max_daily_loss_pct": 0.10,
+        "max_single_position": 120,
         "pdt_trades_remaining": 0,
+        "force_close_at_dte": 1,
         "weekly_drawdown_governor_active": True,
         "max_intraday_pivots": 0,
     },
@@ -57,6 +65,7 @@ DEFAULT_STRATEGY_C: Dict[str, Any] = {
         "yesterday_pnl": 0.0,
         "weekly_cumulative_pnl": 0.0,
     },
+    "_default_reason": "unknown",
 }
 
 
@@ -67,6 +76,18 @@ class GameplanLoader:
     Safety invariant: Any failure in load() or validate() results in
     a Strategy C (cash preservation) gameplan being returned.
     """
+
+    def __init__(self, schema_path: Optional[Path] = None):
+        """
+        Initialize the GameplanLoader.
+
+        Args:
+            schema_path: Path to the JSON schema file. If None, uses default path.
+        """
+        if schema_path is None:
+            schema_path = Path("schemas/daily_gameplan_schema.json")
+        self.schema_path = schema_path
+        self._schema: Optional[Dict[str, Any]] = None
 
     def load(self, path: Path) -> Dict[str, Any]:
         """
@@ -87,34 +108,49 @@ class GameplanLoader:
         try:
             if not path.exists():
                 logger.warning("Gameplan file not found: %s", path)
-                return self._default_strategy_c()
+                return self._default_strategy_c(reason="missing_file")
 
             # utf-8-sig handles optional BOM (Windows Notepad edge case)
             content = path.read_text(encoding="utf-8-sig")
 
             if not content.strip():
                 logger.warning("Gameplan file is empty: %s", path)
-                return self._default_strategy_c()
+                return self._default_strategy_c(reason="empty_file")
 
             gameplan = json.loads(content)
 
             if not isinstance(gameplan, dict):
                 logger.error("Gameplan root is not a dict: %s", type(gameplan).__name__)
-                return self._default_strategy_c()
+                return self._default_strategy_c(reason="invalid_json_type")
+
+            # STEP 2: Schema Validation
+            if not self._validate_schema(gameplan):
+                return self._default_strategy_c(reason="schema_violation")
+
+            # STEP 3: Operator ID Enforcement
+            if not self._validate_operator_id(gameplan):
+                logger.error("Operator ID missing or invalid")
+                return self._default_strategy_c(reason="operator_id_missing")
+
+            # STEP 4: Data Quality Quarantine Check
+            if gameplan.get("data_quality", {}).get("quarantine_active", False):
+                logger.warning("Data quarantine active — forcing Strategy C")
+                return self._default_strategy_c(reason="data_quarantine")
 
             logger.info(
-                "Gameplan loaded from %s: strategy=%s",
+                "Gameplan loaded from %s: strategy=%s, session=%s",
                 path,
                 gameplan.get("strategy"),
+                gameplan.get("session_id"),
             )
             return gameplan
 
         except json.JSONDecodeError as exc:
             logger.error("Gameplan JSON parse failed: %s", exc)
-            return self._default_strategy_c()
+            return self._default_strategy_c(reason="invalid_json")
         except Exception as exc:
             logger.error("Gameplan load failed: %s: %s", type(exc).__name__, exc)
-            return self._default_strategy_c()
+            return self._default_strategy_c(reason=f"load_error: {type(exc).__name__}")
 
     def validate(self, gameplan: Dict[str, Any]) -> bool:
         """
@@ -180,6 +216,76 @@ class GameplanLoader:
         logger.debug("Gameplan validation passed: strategy=%s", strategy)
         return True
 
-    def _default_strategy_c(self) -> Dict[str, Any]:
-        """Return a deep copy of the default Strategy C gameplan."""
-        return copy.deepcopy(DEFAULT_STRATEGY_C)
+    def _load_schema(self) -> Dict[str, Any]:
+        """
+        Load JSON schema from file.
+
+        Returns:
+            Loaded schema dict.
+
+        Raises:
+            FileNotFoundError: If schema file doesn't exist.
+            json.JSONDecodeError: If schema file is malformed.
+        """
+        if self._schema is None:
+            with open(self.schema_path, "r", encoding="utf-8") as f:
+                self._schema = json.load(f)
+        return self._schema
+
+    def _validate_schema(self, gameplan: Dict[str, Any]) -> bool:
+        """
+        Validate gameplan against JSON schema.
+
+        Args:
+            gameplan: The parsed gameplan dict.
+
+        Returns:
+            True if validation succeeds, False otherwise.
+        """
+        try:
+            schema = self._load_schema()
+            jsonschema.validate(instance=gameplan, schema=schema)
+            return True
+        except ValidationError as e:
+            logger.error("Schema validation failed: %s", e.message)
+            logger.error("Failed at path: %s", e.json_path)
+            return False
+        except Exception as e:
+            logger.error("Schema validation error: %s", e)
+            return False
+
+    def _validate_operator_id(self, gameplan: Dict[str, Any]) -> bool:
+        """
+        Validate operator ID is present and correct.
+
+        Args:
+            gameplan: The parsed gameplan dict.
+
+        Returns:
+            True if operator ID is valid, False otherwise.
+        """
+        operator_id = gameplan.get("operator_id")
+        if operator_id != "CSATSPRIM":
+            logger.error("Invalid operator_id: %s (expected CSATSPRIM)", operator_id)
+            return False
+        return True
+
+    def _default_strategy_c(self, reason: str = "unknown") -> Dict[str, Any]:
+        """
+        Generate Strategy C default gameplan.
+
+        Args:
+            reason: The reason for Strategy C deployment.
+
+        Returns:
+            Strategy C default gameplan with reason logged.
+        """
+        logger.warning("Deploying Strategy C default: %s", reason)
+
+        default = copy.deepcopy(DEFAULT_STRATEGY_C)
+        default["date"] = datetime.now().strftime("%Y-%m-%d")
+        default["session_id"] = f"default_strategy_c_{int(time.time())}"
+        default["data_quality"]["last_verified"] = datetime.now().isoformat()
+        default["_default_reason"] = reason
+
+        return default

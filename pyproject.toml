@@ -15,6 +15,7 @@ pydantic = "*"
 pydantic-settings = "*"
 aiohttp = "*"
 python-dotenv = "*"
+jsonschema = "^4.17.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "*"
@@ -25,6 +26,7 @@ ruff = "*"
 mypy = "*"
 pre-commit = "^4.0.1"
 types-pyyaml = "^6.0.12.20250915"
+types-jsonschema = "^4.26.0.20260202"
 
 [tool.black]
 line-length = 100

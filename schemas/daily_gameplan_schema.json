@@ -1,13 +1,192 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Daily Gameplan",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Daily Gameplan — Crucible v4.1",
+  "description": "Complete schema for daily trading configuration produced by Morning Gauntlet",
   "type": "object",
-  "required": ["date", "session_id", "strategy", "operator_id"],
+  "required": [
+    "date",
+    "session_id",
+    "regime",
+    "strategy",
+    "symbols",
+    "operator_id",
+    "hard_limits",
+    "data_quality"
+  ],
   "properties": {
-    "date": {"type": "string"},
-    "session_id": {"type": "string"},
-    "strategy": {"type": "string"},
-    "operator_id": {"type": "string", "minLength": 1}
+    "date": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+      "description": "Trading date in YYYY-MM-DD format"
+    },
+    "session_id": {
+      "type": "string",
+      "pattern": "^gauntlet_\\d{8}_\\d{4}$",
+      "description": "Unique session identifier from Morning Gauntlet"
+    },
+    "regime": {
+      "type": "string",
+      "enum": ["complacency", "normal", "elevated", "high_volatility", "crisis", "unknown"],
+      "description": "Market regime classification based on VIX"
+    },
+    "strategy": {
+      "type": "string",
+      "enum": ["A", "B", "C"],
+      "description": "Strategy selection: A=Momentum, B=Mean Reversion, C=Cash Preservation"
+    },
+    "symbols": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["SPY", "QQQ", "IWM"]
+      },
+      "maxItems": 2,
+      "description": "Trading universe for the day"
+    },
+    "operator_id": {
+      "type": "string",
+      "const": "CSATSPRIM",
+      "description": "IBKR account operator identifier (compliance requirement)"
+    },
+    "position_size_multiplier": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "description": "Position sizing adjustment (0.0-1.0)"
+    },
+    "vix_at_analysis": {
+      "type": ["number", "null"],
+      "minimum": 0,
+      "description": "VIX level at time of analysis"
+    },
+    "vix_source_verified": {
+      "type": "boolean",
+      "description": "Whether VIX data was cross-verified"
+    },
+    "bias": {
+      "type": "string",
+      "enum": ["bullish", "bearish", "neutral"],
+      "description": "Market directional bias"
+    },
+    "expected_behavior": {
+      "type": "string",
+      "enum": ["trending", "mean_reverting", "cash_preservation"],
+      "description": "Expected market behavior pattern"
+    },
+    "key_levels": {
+      "type": "object",
+      "description": "Support/resistance/pivot levels for each symbol"
+    },
+    "catalysts": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Known market catalysts for the day"
+    },
+    "earnings_blackout": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Symbols reporting earnings within 24 hours (excluded from trading)"
+    },
+    "geo_risk": {
+      "type": "string",
+      "enum": ["low", "medium", "high"],
+      "description": "Geopolitical risk assessment"
+    },
+    "alert_message": {
+      "type": "string",
+      "description": "Free-text alert for Discord notifications"
+    },
+    "data_quality": {
+      "type": "object",
+      "required": ["quarantine_active", "last_verified"],
+      "properties": {
+        "quarantine_active": {
+          "type": "boolean",
+          "description": "If true, forces Strategy C regardless of strategy field"
+        },
+        "stale_fields": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "List of data fields that failed freshness validation"
+        },
+        "last_verified": {
+          "type": ["string", "null"],
+          "format": "date-time",
+          "description": "ISO timestamp of last data validation"
+        },
+        "discrepancy_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of data discrepancies detected"
+        }
+      }
+    },
+    "hard_limits": {
+      "type": "object",
+      "required": [
+        "max_daily_loss_pct",
+        "pdt_trades_remaining",
+        "weekly_drawdown_governor_active",
+        "max_intraday_pivots"
+      ],
+      "properties": {
+        "max_daily_loss_pct": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "description": "Maximum daily loss as percentage of capital"
+        },
+        "max_single_position": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Maximum dollar value for single position"
+        },
+        "pdt_trades_remaining": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3,
+          "description": "Remaining day trades in rolling 5-day window"
+        },
+        "force_close_at_dte": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "DTE threshold for forced position close"
+        },
+        "weekly_drawdown_governor_active": {
+          "type": "boolean",
+          "description": "Whether weekly 15% drawdown governor is engaged"
+        },
+        "max_weekly_drawdown_pct": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "description": "Maximum weekly drawdown percentage"
+        },
+        "max_intraday_pivots": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Maximum strategy changes allowed during trading day"
+        }
+      }
+    },
+    "scorecard": {
+      "type": "object",
+      "description": "Performance metrics from previous trading day",
+      "properties": {
+        "yesterday_pnl": {
+          "type": "number",
+          "description": "Previous day's profit/loss"
+        },
+        "weekly_cumulative_pnl": {
+          "type": "number",
+          "description": "Week-to-date profit/loss"
+        },
+        "streak": {
+          "type": "integer",
+          "description": "Current winning/losing streak"
+        }
+      }
+    }
   },
-  "additionalProperties": true
+  "additionalProperties": false
 }

@@ -436,3 +436,266 @@ class TestGameplanSafetyOverrides:
 
         assert result["strategy"] == "C"
         assert result["valid"] is False
+
+
+# =================================================================
+# ENHANCED VALIDATION — JSON Schema and Operator ID
+# =================================================================
+
+
+class TestEnhancedSchemaValidation:
+    """
+    Tests for enhanced JSON schema validation and operator ID enforcement.
+
+    Task 2.7: Comprehensive validation against Crucible v4.1 schema.
+    """
+
+    def test_invalid_regime_enum_returns_strategy_c(self, valid_strategy_a_gameplan, tmp_path):
+        """
+        GIVEN: Gameplan with invalid regime value (not in enum)
+        WHEN: GameplanLoader.load(path) is called
+        THEN: Returns Strategy C default due to schema violation
+        """
+        gameplan = copy.deepcopy(valid_strategy_a_gameplan)
+        gameplan["regime"] = "INVALID_REGIME"
+
+        filepath = tmp_path / "daily_gameplan.json"
+        filepath.write_text(json.dumps(gameplan))
+
+        loader = GameplanLoader()
+        result = loader.load(filepath)
+
+        assert result["strategy"] == "C"
+        assert result["_default_reason"] == "schema_violation"
+
+    def test_invalid_strategy_enum_returns_strategy_c(self, valid_strategy_a_gameplan, tmp_path):
+        """
+        GIVEN: Gameplan with strategy="D" (not in {A, B, C})
+        WHEN: GameplanLoader.load(path) is called
+        THEN: Returns Strategy C default due to schema violation
+        """
+        gameplan = copy.deepcopy(valid_strategy_a_gameplan)
+        gameplan["strategy"] = "D"
+
+        filepath = tmp_path / "daily_gameplan.json"
+        filepath.write_text(json.dumps(gameplan))
+
+        loader = GameplanLoader()
+        result = loader.load(filepath)
+
+        assert result["strategy"] == "C"
+        assert result["_default_reason"] == "schema_violation"
+
+    def test_missing_operator_id_returns_strategy_c(self, valid_strategy_a_gameplan, tmp_path):
+        """
+        GIVEN: Gameplan missing operator_id field
+        WHEN: GameplanLoader.load(path) is called
+        THEN: Returns Strategy C default (operator ID required)
+        """
+        gameplan = copy.deepcopy(valid_strategy_a_gameplan)
+        del gameplan["operator_id"]
+
+        filepath = tmp_path / "daily_gameplan.json"
+        filepath.write_text(json.dumps(gameplan))
+
+        loader = GameplanLoader()
+        result = loader.load(filepath)
+
+        assert result["strategy"] == "C"
+        assert result["_default_reason"] == "schema_violation"
+
+    def test_wrong_operator_id_returns_strategy_c(self, valid_strategy_a_gameplan, tmp_path):
+        """
+        GIVEN: Gameplan with operator_id="WRONG_ID" (not CSATSPRIM)
+        WHEN: GameplanLoader.load(path) is called
+        THEN: Returns Strategy C default (schema validation catches const violation)
+        """
+        gameplan = copy.deepcopy(valid_strategy_a_gameplan)
+        gameplan["operator_id"] = "WRONG_ID"
+
+        filepath = tmp_path / "daily_gameplan.json"
+        filepath.write_text(json.dumps(gameplan))
+
+        loader = GameplanLoader()
+        result = loader.load(filepath)
+
+        assert result["strategy"] == "C"
+        assert result["_default_reason"] == "schema_violation"
+
+    def test_correct_operator_id_passes_validation(self, valid_strategy_a_gameplan, tmp_path):
+        """
+        GIVEN: Gameplan with operator_id="CSATSPRIM" (correct)
+        WHEN: GameplanLoader.load(path) is called
+        THEN: Loads successfully (Strategy A)
+        """
+        gameplan = copy.deepcopy(valid_strategy_a_gameplan)
+        gameplan["operator_id"] = "CSATSPRIM"
+
+        filepath = tmp_path / "daily_gameplan.json"
+        filepath.write_text(json.dumps(gameplan))
+
+        loader = GameplanLoader()
+        result = loader.load(filepath)
+
+        assert result["strategy"] == "A"
+        assert "operator_id" in result
+        assert result["operator_id"] == "CSATSPRIM"
+
+    def test_data_quarantine_override_forces_strategy_c(self, valid_strategy_a_gameplan, tmp_path):
+        """
+        GIVEN: Gameplan with strategy="A" but quarantine_active=True
+        WHEN: GameplanLoader.load(path) is called
+        THEN: Returns Strategy C (quarantine overrides strategy field)
+        """
+        gameplan = copy.deepcopy(valid_strategy_a_gameplan)
+        gameplan["strategy"] = "A"
+        gameplan["data_quality"]["quarantine_active"] = True
+
+        filepath = tmp_path / "daily_gameplan.json"
+        filepath.write_text(json.dumps(gameplan))
+
+        loader = GameplanLoader()
+        result = loader.load(filepath)
+
+        assert result["strategy"] == "C"
+        assert result["_default_reason"] == "data_quarantine"
+
+    def test_type_mismatch_pdt_returns_strategy_c(self, valid_strategy_a_gameplan, tmp_path):
+        """
+        GIVEN: Gameplan with pdt_trades_remaining as string (should be int)
+        WHEN: GameplanLoader.load(path) is called
+        THEN: Returns Strategy C due to schema type violation
+        """
+        gameplan = copy.deepcopy(valid_strategy_a_gameplan)
+        gameplan["hard_limits"]["pdt_trades_remaining"] = "2"  # String instead of int
+
+        filepath = tmp_path / "daily_gameplan.json"
+        filepath.write_text(json.dumps(gameplan))
+
+        loader = GameplanLoader()
+        result = loader.load(filepath)
+
+        assert result["strategy"] == "C"
+        assert result["_default_reason"] == "schema_violation"
+
+    def test_symbols_exceeds_max_items_returns_strategy_c(
+        self, valid_strategy_a_gameplan, tmp_path
+    ):
+        """
+        GIVEN: Gameplan with 3 symbols (max is 2)
+        WHEN: GameplanLoader.load(path) is called
+        THEN: Returns Strategy C due to schema maxItems violation
+        """
+        gameplan = copy.deepcopy(valid_strategy_a_gameplan)
+        gameplan["symbols"] = ["SPY", "QQQ", "IWM"]  # 3 symbols, max is 2
+
+        filepath = tmp_path / "daily_gameplan.json"
+        filepath.write_text(json.dumps(gameplan))
+
+        loader = GameplanLoader()
+        result = loader.load(filepath)
+
+        assert result["strategy"] == "C"
+        assert result["_default_reason"] == "schema_violation"
+
+    def test_invalid_session_id_format_returns_strategy_c(
+        self, valid_strategy_a_gameplan, tmp_path
+    ):
+        """
+        GIVEN: Gameplan with session_id not matching pattern
+        WHEN: GameplanLoader.load(path) is called
+        THEN: Returns Strategy C due to schema pattern violation
+        """
+        gameplan = copy.deepcopy(valid_strategy_a_gameplan)
+        gameplan["session_id"] = "invalid_format"  # Should be gauntlet_YYYYMMDD_HHMM
+
+        filepath = tmp_path / "daily_gameplan.json"
+        filepath.write_text(json.dumps(gameplan))
+
+        loader = GameplanLoader()
+        result = loader.load(filepath)
+
+        assert result["strategy"] == "C"
+        assert result["_default_reason"] == "schema_violation"
+
+    def test_pdt_exceeds_max_returns_strategy_c(self, valid_strategy_a_gameplan, tmp_path):
+        """
+        GIVEN: Gameplan with pdt_trades_remaining = 4 (max is 3)
+        WHEN: GameplanLoader.load(path) is called
+        THEN: Returns Strategy C due to schema maximum violation
+        """
+        gameplan = copy.deepcopy(valid_strategy_a_gameplan)
+        gameplan["hard_limits"]["pdt_trades_remaining"] = 4
+
+        filepath = tmp_path / "daily_gameplan.json"
+        filepath.write_text(json.dumps(gameplan))
+
+        loader = GameplanLoader()
+        result = loader.load(filepath)
+
+        assert result["strategy"] == "C"
+        assert result["_default_reason"] == "schema_violation"
+
+    def test_default_strategy_c_includes_operator_id(self, tmp_path):
+        """
+        GIVEN: Missing gameplan file
+        WHEN: GameplanLoader.load(path) is called
+        THEN: Strategy C default includes operator_id=CSATSPRIM
+        """
+        filepath = tmp_path / "nonexistent_gameplan.json"
+
+        loader = GameplanLoader()
+        result = loader.load(filepath)
+
+        assert result["strategy"] == "C"
+        assert result["operator_id"] == "CSATSPRIM"
+
+    def test_default_strategy_c_includes_all_hard_limits(self, tmp_path):
+        """
+        GIVEN: Missing gameplan file
+        WHEN: GameplanLoader.load(path) is called
+        THEN: Strategy C default includes all required hard_limits fields
+        """
+        filepath = tmp_path / "nonexistent_gameplan.json"
+
+        loader = GameplanLoader()
+        result = loader.load(filepath)
+
+        assert result["strategy"] == "C"
+        assert "hard_limits" in result
+        hard_limits = result["hard_limits"]
+        assert "max_daily_loss_pct" in hard_limits
+        assert "max_single_position" in hard_limits
+        assert "pdt_trades_remaining" in hard_limits
+        assert "force_close_at_dte" in hard_limits
+        assert "weekly_drawdown_governor_active" in hard_limits
+        assert "max_intraday_pivots" in hard_limits
+
+        # Strategy C defaults to maximum safety
+        assert hard_limits["pdt_trades_remaining"] == 0
+        assert hard_limits["weekly_drawdown_governor_active"] is True
+        assert hard_limits["max_intraday_pivots"] == 0
+
+    def test_default_reason_logged_for_various_failures(self, tmp_path):
+        """
+        GIVEN: Various gameplan failure scenarios
+        WHEN: GameplanLoader.load(path) is called
+        THEN: _default_reason field captures specific failure mode
+        """
+        # Test missing file
+        filepath1 = tmp_path / "missing.json"
+        loader = GameplanLoader()
+        result1 = loader.load(filepath1)
+        assert result1["_default_reason"] == "missing_file"
+
+        # Test empty file
+        filepath2 = tmp_path / "empty.json"
+        filepath2.write_text("")
+        result2 = loader.load(filepath2)
+        assert result2["_default_reason"] == "empty_file"
+
+        # Test invalid JSON
+        filepath3 = tmp_path / "invalid.json"
+        filepath3.write_text("{broken json")
+        result3 = loader.load(filepath3)
+        assert result3["_default_reason"] == "invalid_json"

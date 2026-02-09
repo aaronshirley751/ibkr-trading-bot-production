@@ -20,6 +20,7 @@ repos:
           - pydantic-settings
           - ib-insync
           - pytest
+          - types-jsonschema
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
