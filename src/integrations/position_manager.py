@@ -17,7 +17,10 @@ ALPHA LEARNINGS ENFORCED:
 import logging
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .order_executor import OrderResult, FillResult
 
 logger = logging.getLogger(__name__)
 
@@ -235,9 +238,7 @@ class PositionManager:
             return "3_DTE_RULE"
         return None
 
-    async def close(
-        self, position_id: str, reason: str, timeout: float = 30.0
-    ) -> Any:  # Returns OrderResult
+    async def close(self, position_id: str, reason: str, timeout: float = 30.0) -> "OrderResult":
         """
         Close a specific position.
 
@@ -310,9 +311,7 @@ class PositionManager:
                 timestamp=datetime.now(timezone.utc),
             )
 
-    async def close_all(
-        self, reason: str, timeout: float = 60.0
-    ) -> List[Any]:  # Returns List[OrderResult]
+    async def close_all(self, reason: str, timeout: float = 60.0) -> List["OrderResult"]:
         """
         Emergency close all positions (Strategy C liquidation).
 
@@ -379,12 +378,13 @@ class PositionManager:
                 snapshot=True,
             )
             self._connection.ib.sleep(1)  # Wait for snapshot
-            return ticker.last if ticker.last > 0 else ticker.close
+            result: float = float(ticker.last if ticker.last > 0 else ticker.close)
+            return result
         except Exception as e:
             logger.warning(f"Could not fetch current price for {symbol}, using 0.0: {str(e)}")
             return 0.0
 
-    async def _wait_for_fill(self, trade: Any, timeout: float) -> Any:  # Returns FillResult
+    async def _wait_for_fill(self, trade: Any, timeout: float) -> "FillResult":
         """
         Wait for closing order to fill.
 

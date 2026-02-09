@@ -462,11 +462,11 @@ class OrderExecutor:
         start_time = datetime.now()
 
         while (datetime.now() - start_time).total_seconds() < timeout:
-            if trade.isDone():
+            if trade.isDone():  # type: ignore[no-untyped-call]
                 return FillResult(
                     filled=True,
                     avg_fill_price=trade.orderStatus.avgFillPrice,
-                    filled_quantity=trade.orderStatus.filled,
+                    filled_quantity=int(trade.orderStatus.filled),
                 )
             await asyncio.sleep(0.1)
 
@@ -474,7 +474,7 @@ class OrderExecutor:
         return FillResult(
             filled=False,
             avg_fill_price=trade.orderStatus.avgFillPrice or 0.0,
-            filled_quantity=trade.orderStatus.filled or 0,
+            filled_quantity=int(trade.orderStatus.filled or 0),
         )
 
     def _generate_order_id(self) -> str:

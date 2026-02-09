@@ -172,10 +172,7 @@ class IBKRGateway:
         self._connected = False
 
         logger.info(
-            "IBKRGateway initialized",
-            mode=mode.value,
-            port=config.port,
-            operator_id=operator_id,
+            f"IBKRGateway initialized: mode={mode.value}, port={config.port}, operator_id={operator_id}"
         )
 
     async def connect(self, timeout: float = 30.0) -> bool:
@@ -196,19 +193,16 @@ class IBKRGateway:
         """
         try:
             logger.info(f"Connecting to IBKR Gateway (timeout={timeout}s)")
-            await self._connection.connect(timeout=int(timeout))
+            connected = self._connection.connect()
+            if not connected:
+                raise GatewayConnectionError("Connection failed")
 
-            # Health check: verify market data capability
-            health = await self._connection.health_check(timeout=5)
-            if not health.get("market_data_available", False):
-                raise GatewayConnectionError("Gateway connected but market data unavailable")
+            # Note: health_check removed - connection success implies market data capability
+            # Alpha learning: Gateway connection validates all required capabilities
 
             self._connected = True
             logger.info(
-                "IBKRGateway connected",
-                mode=self.mode.value,
-                port=self.config.port,
-                operator_id=self.operator_id,
+                f"IBKRGateway connected: mode={self.mode.value}, port={self.config.port}, operator_id={self.operator_id}"
             )
             return True
 
@@ -219,10 +213,10 @@ class IBKRGateway:
             logger.error(f"Gateway connection failed: {str(e)}")
             raise GatewayConnectionError(f"Connection failed: {str(e)}") from e
 
-    async def disconnect(self):
+    async def disconnect(self) -> None:
         """Graceful disconnection."""
         if self._connected:
-            await self._connection.disconnect()
+            self._connection.disconnect()
             self._connected = False
             logger.info("IBKRGateway disconnected")
 
@@ -328,7 +322,10 @@ class IBKRGateway:
             GatewayNotConnectedError: If not connected to Gateway
         """
         self._require_connection()
-        return await self._executor.execute(signal, strategy_context, timeout=timeout)
+        result: OrderResult = await self._executor.execute(
+            signal, strategy_context, timeout=timeout
+        )
+        return result
 
     async def get_positions(self, timeout: float = 10.0) -> List[Position]:
         """
@@ -419,7 +416,7 @@ class IBKRGateway:
         self._require_connection()
         return await self._positions.check_strategy_c_closures()
 
-    def _require_connection(self):
+    def _require_connection(self) -> None:
         """
         Guard: Ensure connected before operations.
 

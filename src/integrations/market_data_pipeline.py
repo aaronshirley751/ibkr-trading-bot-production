@@ -138,8 +138,7 @@ class MarketDataPipeline:
         self._provider = market_data_provider
         self._staleness_threshold = staleness_threshold_seconds
         logger.info(
-            "MarketDataPipeline initialized",
-            staleness_threshold_seconds=staleness_threshold_seconds,
+            f"MarketDataPipeline initialized: staleness_threshold_seconds={staleness_threshold_seconds}"
         )
 
     async def fetch_market_data(self, symbol: str, timeout: float = 30.0) -> MarketData:
@@ -164,7 +163,7 @@ class MarketDataPipeline:
             InsufficientDataError: Not enough bars for indicator calculation
             MarketDataError: Failed to fetch data
         """
-        logger.debug(f"Fetching market data for {symbol}", timeout=timeout)
+        logger.debug(f"Fetching market data for {symbol} (timeout={timeout}s)")
 
         try:
             # Step 1: Fetch real-time quote
@@ -203,10 +202,7 @@ class MarketDataPipeline:
             )
 
             logger.info(
-                "Market data fetched successfully",
-                symbol=symbol,
-                data_quality_score=quality.score,
-                is_stale=quality.is_stale,
+                f"Market data fetched successfully: symbol={symbol}, data_quality_score={quality.score}, is_stale={quality.is_stale}"
             )
 
             return market_data
@@ -263,7 +259,7 @@ class MarketDataPipeline:
             timeout=int(timeout),
         )
 
-        return quote_result
+        return dict(quote_result)
 
     async def _fetch_historical_bars(
         self, symbol: str, timeout: float, duration_minutes: int = 60
