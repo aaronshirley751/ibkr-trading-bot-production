@@ -1,0 +1,37 @@
+src\integrations\market_data_pipeline.py:140: error: Unexpected keyword argument "staleness_threshold_seconds" for "info" of "Logger"  [call-arg]
+C:\Users\tasms\.cache\pre-commit\repo6p2vlw7x\py_env-python3.13\Lib\site-packages\mypy\typeshed\stdlib\logging\__init__.pyi: note: "info" of "Logger" defined here
+src\integrations\market_data_pipeline.py:167: error: Unexpected keyword argument "timeout" for "debug" of "Logger"  [call-arg]
+C:\Users\tasms\.cache\pre-commit\repo6p2vlw7x\py_env-python3.13\Lib\site-packages\mypy\typeshed\stdlib\logging\__init__.pyi: note: "debug" of "Logger" defined here
+src\integrations\market_data_pipeline.py:205: error: Unexpected keyword argument "symbol" for "info" of "Logger"  [call-arg]
+src\integrations\market_data_pipeline.py:205: error: Unexpected keyword argument "data_quality_score" for "info" of "Logger"  [call-arg]
+src\integrations\market_data_pipeline.py:205: error: Unexpected keyword argument "is_stale" for "info" of "Logger"  [call-arg]
+src\integrations\market_data_pipeline.py:266: error: Returning Any from function declared to return "dict[str, Any]"  [no-any-return]
+src\integrations\order_executor.py:465: error: Call to untyped function "isDone" in typed context  [no-untyped-call]
+src\integrations\order_executor.py:469: error: Argument "filled_quantity" to "FillResult" has incompatible type "float"; expected "int"  [arg-type]
+src\integrations\order_executor.py:477: error: Argument "filled_quantity" to "FillResult" has incompatible type "float | int"; expected "int"  [arg-type]
+src\integrations\position_manager.py:382: error: Returning Any from function declared to return "float"  [no-any-return]
+src\integrations\ibkr_gateway.py:174: error: Unexpected keyword argument "mode" for "info" of "Logger"  [call-arg]
+C:\Users\tasms\.cache\pre-commit\repo6p2vlw7x\py_env-python3.13\Lib\site-packages\mypy\typeshed\stdlib\logging\__init__.pyi: note: "info" of "Logger" defined here
+src\integrations\ibkr_gateway.py:174: error: Unexpected keyword argument "port" for "info" of "Logger"  [call-arg]
+src\integrations\ibkr_gateway.py:174: error: Unexpected keyword argument "operator_id" for "info" of "Logger"  [call-arg]
+src\integrations\ibkr_gateway.py:199: error: Unexpected keyword argument "timeout" for "connect" of "IBKRConnection"  [call-arg]
+src\broker\connection.py: note: "connect" of "IBKRConnection" defined here
+src\integrations\ibkr_gateway.py:199: error: Incompatible types in "await" (actual type "bool", expected type "Awaitable[Any]")  [misc]
+src\integrations\ibkr_gateway.py:202: error: "IBKRConnection" has no attribute "health_check"  [attr-defined]
+src\integrations\ibkr_gateway.py:207: error: Unexpected keyword argument "mode" for "info" of "Logger"  [call-arg]
+src\integrations\ibkr_gateway.py:207: error: Unexpected keyword argument "port" for "info" of "Logger"  [call-arg]
+src\integrations\ibkr_gateway.py:207: error: Unexpected keyword argument "operator_id" for "info" of "Logger"  [call-arg]
+src\integrations\ibkr_gateway.py:222: error: Function is missing a return type annotation  [no-untyped-def]
+src\integrations\ibkr_gateway.py:222: note: Use "-> None" if function does not return a value
+src\integrations\ibkr_gateway.py:225: error: "disconnect" of "IBKRConnection" does not return a value (it only ever returns None)  [func-returns-value]
+src\integrations\ibkr_gateway.py:253: error: Call to untyped function "_require_connection" in typed context  [no-untyped-call]
+src\integrations\ibkr_gateway.py:283: error: Call to untyped function "_require_connection" in typed context  [no-untyped-call]
+src\integrations\ibkr_gateway.py:330: error: Call to untyped function "_require_connection" in typed context  [no-untyped-call]
+src\integrations\ibkr_gateway.py:352: error: Call to untyped function "_require_connection" in typed context  [no-untyped-call]
+src\integrations\ibkr_gateway.py:379: error: Call to untyped function "_require_connection" in typed context  [no-untyped-call]
+src\integrations\ibkr_gateway.py:380: error: Returning Any from function declared to return "OrderResult"  [no-any-return]
+src\integrations\ibkr_gateway.py:402: error: Call to untyped function "_require_connection" in typed context  [no-untyped-call]
+src\integrations\ibkr_gateway.py:419: error: Call to untyped function "_require_connection" in typed context  [no-untyped-call]
+src\integrations\ibkr_gateway.py:422: error: Function is missing a return type annotation  [no-untyped-def]
+src\integrations\ibkr_gateway.py:422: note: Use "-> None" if function does not return a value
+Found 30 errors in 4 files (checked 5 source files)
