@@ -1,9 +1,24 @@
 # =============================================================================
+# ⚠️ DEPRECATED: This file is no longer used.
+# =============================================================================
+#
+# **Migrated to unified stack:** ../docker-compose.yml
+# **Date deprecated:** 2026-02-10
+# **Reason:** Task 3.4 migration to unified orchestration (Gateway + Bot + Health)
+# **Preserved for:** Reference only
+# **Backup available at:** docker-compose.backup.yml
+#
+# To use the unified stack:
+#   cd .. && docker compose up -d
+#
+# =============================================================================
+# ORIGINAL HEADER (Legacy)
+# =============================================================================
 # IBKR Gateway Docker Compose Configuration
 # Charter & Stone Capital — The Crucible
 # =============================================================================
 #
-# Usage:
+# Usage (DEPRECATED — Use unified stack instead):
 #   docker compose up -d      # Start Gateway
 #   docker compose down       # Stop Gateway
 #   docker compose logs -f    # View logs

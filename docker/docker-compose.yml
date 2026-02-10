@@ -7,13 +7,42 @@ services:
     image: gnzsnz/ib-gateway:stable
     container_name: ibkr-gateway
     ports:
-      - "4001:4001"  # Live trading (not used for paper)
-      - "4002:4002"  # Paper trading
-      - "5900:5900"  # VNC (debugging)
+      - "127.0.0.1:4001:4001"  # Live trading (not used for paper)
+      - "127.0.0.1:4002:4002"  # Paper trading
+      - "127.0.0.1:5900:5900"  # VNC (debugging)
+      - "127.0.0.1:6080:6080"  # noVNC web interface
     environment:
+      # Credentials
+      - TWS_USERID=${IBKR_USERNAME}
+      - TWS_PASSWORD=${IBKR_PASSWORD}
       - TRADING_MODE=paper
-      - TWSUSERID=${IBKR_USERNAME}
-      - TWSPASSWORD=${IBKR_PASSWORD}
+
+      # Timezone (for proper market hours handling)
+      - TIME_ZONE=America/New_York
+
+      # 2FA handling: restart on timeout for fresh attempt
+      - TWOFA_TIMEOUT_ACTION=restart
+      - RELOGIN_AFTER_TWOFA_TIMEOUT=yes
+
+      # IBC behavior settings
+      - ACCEPT_INCOMING_CONNECTION_ACTION=accept
+      - ALLOW_BLIND_TRADING=yes
+      - EXISTING_SESSION_DETECTED_ACTION=primary
+      - STORE_SETTINGS_ON_SERVER=no
+      - READ_ONLY_API=no
+      - BYPASS_WARNING=yes
+
+      # Allow API connections from Docker network (not just 127.0.0.1)
+      - TWS_ACCEPT_INCOMING=accept
+
+      # Enable IBC trace logging for debugging
+      - IBC_LOGLEVEL=Debug
+
+      # Disable Gateway's internal auto-restart (we use scheduled restart)
+      - AUTO_RESTART_TIME=
+
+      # VNC password for debugging access (optional)
+      - VNC_SERVER_PASSWORD=${VNC_PASSWORD:-}
     volumes:
       - gateway-data:/home/ibgateway/Jts
     healthcheck:

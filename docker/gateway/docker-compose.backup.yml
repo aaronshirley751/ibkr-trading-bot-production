@@ -1,0 +1,55 @@
+name: gateway
+services:
+  gateway:
+    container_name: ibkr-gateway
+    environment:
+      ACCEPT_INCOMING_CONNECTION_ACTION: accept
+      ALLOW_BLIND_TRADING: "yes"
+      AUTO_RESTART_TIME: ""
+      EXISTING_SESSION_DETECTED_ACTION: primary
+      IBC_LOGLEVEL: Debug
+      READ_ONLY_API: "no"
+      RELOGIN_AFTER_TWOFA_TIMEOUT: "yes"
+      STORE_SETTINGS_ON_SERVER: "no"
+      TIME_ZONE: America/New_York
+      TRADING_MODE: paper
+      TWOFA_TIMEOUT_ACTION: restart
+      TWS_PASSWORD: _?gB,2_ZkR?Le84
+      TWS_USERID: saladbar751
+      VNC_SERVER_PASSWORD: debugging123
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - timeout 1 bash -c '</dev/tcp/localhost/4002' || exit 1
+      timeout: 10s
+      interval: 30s
+      retries: 3
+      start_period: 2m0s
+    image: gnzsnz/ib-gateway:stable
+    logging:
+      driver: json-file
+      options:
+        max-file: "3"
+        max-size: 50m
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        host_ip: 127.0.0.1
+        target: 4002
+        published: "4002"
+        protocol: tcp
+      - mode: ingress
+        host_ip: 127.0.0.1
+        target: 5900
+        published: "5900"
+        protocol: tcp
+      - mode: ingress
+        host_ip: 127.0.0.1
+        target: 6080
+        published: "6080"
+        protocol: tcp
+    restart: unless-stopped
+networks:
+  default:
+    name: gateway_default
