@@ -56,12 +56,14 @@ class GatewayHealthChecker:
         host: str,
         port: int,
         discord_webhook: Optional[str] = None,
-        client_id: int = 0,  # Use client 0 for health checks
+        client_id: int = 100,  # TASK-3.4.1: Use unique client ID to avoid conflicts
     ):
         self.host = host
         self.port = port
         self.discord_webhook = discord_webhook
         self.client_id = client_id
+        # Timeout increased from 10s to 60s for TWS API initialization
+        self.connection_timeout = 60.0
         self._alert_thresholds = {3: "WARNING", 10: "ERROR"}
 
     def check_port(self, timeout: float = 5.0) -> bool:
@@ -81,14 +83,14 @@ class GatewayHealthChecker:
             logger.debug(f"Port check failed: {e}")
             return False
 
-    def validate_authentication(self, timeout: float = 10.0) -> bool:
+    def validate_authentication(self, timeout: float = 60.0) -> bool:
         """
         Validate that Gateway is authenticated to IBKR.
 
         Connects via IB API and checks for accessible managed accounts.
 
         Args:
-            timeout: IB API connection timeout in seconds.
+            timeout: IB API connection timeout in seconds (increased for Gateway TWS API init).
 
         Returns:
             True if authenticated, False otherwise.

@@ -8,7 +8,7 @@ services:
     container_name: ibkr-gateway
     ports:
       - "127.0.0.1:4001:4001"  # Live trading (not used for paper)
-      - "127.0.0.1:4002:4002"  # Paper trading
+      - "127.0.0.1:4002:4004"  # Paper trading: SOCAT proxy on 4004 forwards to API
       - "127.0.0.1:5900:5900"  # VNC (debugging)
       - "127.0.0.1:6080:6080"  # noVNC web interface
     environment:
@@ -32,6 +32,9 @@ services:
       - READ_ONLY_API=no
       - BYPASS_WARNING=yes
 
+      # TASK-3.4.1: Explicitly set API port to 4002 for paper trading
+      - OVERRIDE_TWS_API_PORT=4002
+
       # Allow API connections from Docker network (not just 127.0.0.1)
       - TWS_ACCEPT_INCOMING=accept
 
@@ -45,8 +48,10 @@ services:
       - VNC_SERVER_PASSWORD=${VNC_PASSWORD:-}
     volumes:
       - gateway-data:/home/ibgateway/Jts
+      # Custom jts.ini template with TrustedIPs empty (allows Docker network connections)
+      - ./gateway/jts.ini.tmpl:/home/ibgateway/Jts/jts.ini.tmpl:ro
     healthcheck:
-      test: ["CMD", "bash", "-c", "echo > /dev/tcp/localhost/4002"]
+      test: ["CMD", "bash", "-c", "echo > /dev/tcp/localhost/4004"]  # SOCAT proxy port
       interval: 10s
       timeout: 5s
       retries: 5
@@ -65,7 +70,7 @@ services:
         condition: service_healthy
     environment:
       - GATEWAY_HOST=gateway
-      - GATEWAY_PORT=4002
+      - GATEWAY_PORT=4004  # TASK-3.4.1: Connect to SOCAT proxy (4004 -> TWS API)
       - GATEWAY_STARTUP_TIMEOUT=${GATEWAY_STARTUP_TIMEOUT:-300}
       - GATEWAY_MAX_RETRIES=${GATEWAY_MAX_RETRIES:-30}
       - GATEWAY_RETRY_INTERVAL=${GATEWAY_RETRY_INTERVAL:-5}
@@ -95,7 +100,7 @@ services:
       # Gateway Configuration
       - GATEWAY_CONTAINER_NAME=${GATEWAY_CONTAINER_NAME:-ibkr-gateway}
       - GATEWAY_HOST=${GATEWAY_HOST:-gateway}
-      - GATEWAY_PORT=4002
+      - GATEWAY_PORT=4004  # TASK-3.4.1: Connect to SOCAT proxy
       - GATEWAY_RESTART_TIMEOUT_SECONDS=${GATEWAY_RESTART_TIMEOUT_SECONDS:-30}
       - GATEWAY_READY_MAX_ATTEMPTS=${GATEWAY_READY_MAX_ATTEMPTS:-12}
       - GATEWAY_READY_CHECK_INTERVAL_SECONDS=${GATEWAY_READY_CHECK_INTERVAL_SECONDS:-5}

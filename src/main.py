@@ -128,21 +128,52 @@ def run_trading_loop(
         gameplan: Daily gameplan dictionary.
         health_checker: Gateway health checker instance.
     """
+    import time
+
     logger.info("Trading loop started")
     logger.info(f"Active strategy: {gameplan.get('strategy', 'unknown')}")
     logger.info(f"Target symbols: {gameplan.get('symbols', [])}")
 
-    # TODO: Implement full trading loop integration
-    # This will be expanded in future tasks to include:
-    # 1. IBKRGateway initialization
-    # 2. Market data fetching
-    # 3. Signal evaluation
-    # 4. Order execution
-    # 5. Position management
-    # 6. Periodic Gateway health checks
+    strategy = gameplan.get("strategy", "C")
 
-    logger.info("Trading loop placeholder - full implementation pending")
-    logger.info("Bot initialized successfully and ready for trading logic")
+    # Strategy C: Cash preservation mode - keep bot alive with periodic health checks
+    if strategy == "C":
+        logger.info("Strategy C active: Cash preservation mode - monitoring only")
+        logger.info("Bot initialized successfully and ready for trading logic")
+        health_check_interval = 300  # 5 minutes
+
+        while True:
+            try:
+                # Periodic health check (lightweight port check)
+                logger.debug("Performing periodic Gateway health check...")
+                is_healthy = health_checker.check_port(timeout=10.0)
+                if is_healthy:
+                    logger.debug("Gateway health check passed")
+                else:
+                    logger.warning("Gateway health check failed, will retry")
+                time.sleep(health_check_interval)
+            except KeyboardInterrupt:
+                logger.info("Shutdown signal received")
+                raise
+            except Exception as e:
+                logger.error(f"Error in health check loop: {e}")
+                time.sleep(60)  # Wait a minute before retrying
+    else:
+        # TODO: Implement full trading loop integration for Strategies A and B
+        # This will be expanded in future tasks to include:
+        # 1. IBKRGateway initialization
+        # 2. Market data fetching
+        # 3. Signal evaluation
+        # 4. Order execution
+        # 5. Position management
+        # 6. Periodic Gateway health checks
+        logger.info("Trading loop placeholder - full implementation pending")
+        logger.info("Bot initialized successfully and ready for trading logic")
+
+        # Keep alive for non-Strategy-C modes as well (placeholder)
+        while True:
+            time.sleep(60)
+            logger.debug("Trading loop heartbeat (placeholder mode)")
 
 
 def main() -> None:
@@ -182,7 +213,7 @@ def main() -> None:
         host=gateway_config.host,
         port=gateway_config.port,
         discord_webhook=gateway_config.discord_webhook_url,
-        client_id=0,  # Use client 0 for health checks
+        client_id=100,  # TASK-3.4.1: Use unique client ID to avoid conflicts
     )
 
     logger.info("Beginning Gateway validation...")
