@@ -66,15 +66,20 @@ def check_gateway_health(
 
     # Check 1: Container exists and is running
     try:
-        container = docker_client.containers.get(config.gateway_container_name)
+        # Use list(all=True) to find stopped containers too
+        containers = docker_client.containers.list(
+            all=True, filters={"name": config.gateway_container_name}
+        )
+        if not containers:
+            logger.warning(f"Gateway container '{config.gateway_container_name}' not found")
+            details.container_status = "not_found"
+            return HealthStatus.DOWN, details
+
+        container = containers[0]
         details.container_running = container.status == "running"
         details.container_status = container.status
         if details.container_running:
             details.uptime_seconds = calculate_uptime(container)
-    except NotFound:
-        logger.warning(f"Gateway container '{config.gateway_container_name}' not found")
-        details.container_status = "not_found"
-        return HealthStatus.DOWN, details
     except Exception as e:
         logger.error(f"Docker API error checking Gateway container: {e}")
         details.container_status = "error"
@@ -197,10 +202,28 @@ def attempt_gateway_restart(docker_client: Any, config: MonitorConfig) -> bool:
         False if restart failed or port still unresponsive
     """
     try:
-        container = docker_client.containers.get(config.gateway_container_name)
+        # Find container even if stopped
+        containers = docker_client.containers.list(
+            all=True, filters={"name": config.gateway_container_name}
+        )
+        if not containers:
+            logger.error(
+                f"Gateway container '{config.gateway_container_name}' not found - cannot restart"
+            )
+            return False
 
-        logger.info(f"Restarting Gateway container '{config.gateway_container_name}'")
-        container.restart(timeout=config.gateway_restart_timeout_seconds)
+        container = containers[0]
+
+        # If stopped, start it; if running, restart it
+        if container.status == "running":
+            logger.info(f"Restarting Gateway container '{config.gateway_container_name}'")
+            container.restart(timeout=config.gateway_restart_timeout_seconds)
+        else:
+            logger.info(
+                f"Starting stopped Gateway container '{config.gateway_container_name}' "
+                f"(current status: {container.status})"
+            )
+            container.start()
 
         # Wait for Gateway to be ready (give it time to initialize)
         for attempt in range(config.gateway_ready_max_attempts):
@@ -224,13 +247,8 @@ def attempt_gateway_restart(docker_client: Any, config: MonitorConfig) -> bool:
         )
         return False
 
-    except NotFound:
-        logger.error(
-            f"Gateway container '{config.gateway_container_name}' not found - cannot restart"
-        )
-        return False
     except Exception as e:
-        logger.error(f"Gateway restart failed: {e}")
+        logger.error(f"Gateway restart/start failed: {e}")
         return False
 
 

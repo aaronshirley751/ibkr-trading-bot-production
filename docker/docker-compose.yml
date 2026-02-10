@@ -4,8 +4,8 @@ version: "3.8"
 
 services:
   gateway:
-    image: gnzsnz/ib-gateway:10.25.1
-    container_name: ib-gateway
+    image: gnzsnz/ib-gateway:stable
+    container_name: ibkr-gateway
     ports:
       - "4001:4001"  # Live trading (not used for paper)
       - "4002:4002"  # Paper trading
@@ -64,8 +64,8 @@ services:
       - DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL}
       - DISCORD_OPERATOR_MENTION=${DISCORD_OPERATOR_MENTION:-}
       # Gateway Configuration
-      - GATEWAY_CONTAINER_NAME=ib-gateway
-      - GATEWAY_HOST=gateway
+      - GATEWAY_CONTAINER_NAME=${GATEWAY_CONTAINER_NAME:-ibkr-gateway}
+      - GATEWAY_HOST=${GATEWAY_HOST:-gateway}
       - GATEWAY_PORT=4002
       - GATEWAY_RESTART_TIMEOUT_SECONDS=${GATEWAY_RESTART_TIMEOUT_SECONDS:-30}
       - GATEWAY_READY_MAX_ATTEMPTS=${GATEWAY_READY_MAX_ATTEMPTS:-12}
