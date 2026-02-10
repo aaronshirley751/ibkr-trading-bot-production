@@ -1,0 +1,61 @@
+# docker/docker-compose.yml
+
+version: "3.8"
+
+services:
+  gateway:
+    image: gnzsnz/ib-gateway:10.25.1
+    container_name: ib-gateway
+    ports:
+      - "4001:4001"  # Live trading (not used for paper)
+      - "4002:4002"  # Paper trading
+      - "5900:5900"  # VNC (debugging)
+    environment:
+      - TRADING_MODE=paper
+      - TWSUSERID=${IBKR_USERNAME}
+      - TWSPASSWORD=${IBKR_PASSWORD}
+    volumes:
+      - gateway-data:/home/ibgateway/Jts
+    healthcheck:
+      test: ["CMD", "bash", "-c", "echo > /dev/tcp/localhost/4002"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+    networks:
+      - trading-network
+
+  trading-bot:
+    build:
+      context: ../
+      dockerfile: docker/bot/Dockerfile
+    container_name: trading-bot
+    depends_on:
+      gateway:
+        condition: service_healthy
+    environment:
+      - GATEWAY_HOST=gateway
+      - GATEWAY_PORT=4002
+      - GATEWAY_STARTUP_TIMEOUT=${GATEWAY_STARTUP_TIMEOUT:-300}
+      - GATEWAY_MAX_RETRIES=${GATEWAY_MAX_RETRIES:-30}
+      - GATEWAY_RETRY_INTERVAL=${GATEWAY_RETRY_INTERVAL:-5}
+      - GAMEPLAN_PATH=/data/gameplan.json
+      - DRY_RUN=${DRY_RUN:-true}
+      - DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL}
+      - CLIENT_ID=${CLIENT_ID:-1}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    volumes:
+      - ./data:/data:ro
+      - bot-logs:/app/logs
+    restart: unless-stopped
+    networks:
+      - trading-network
+
+volumes:
+  gateway-data:
+  bot-logs:
+
+networks:
+  trading-network:
+    driver: bridge
