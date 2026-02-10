@@ -1,0 +1,77 @@
+# =============================================================================
+# IBKR Gateway Service (via IBC Controller)
+# =============================================================================
+#
+# Manages the IBKR Gateway lifecycle using IBC Controller.
+# Provides automated login, monitoring, and graceful shutdown.
+#
+# Dependencies:
+#   - xvfb.service (virtual display)
+#   - network-online.target (network connectivity)
+#
+# =============================================================================
+
+[Unit]
+Description=IBKR Gateway (IBC Controller)
+Documentation=https://github.com/IbcAlpha/IBC
+After=network-online.target xvfb.service
+Requires=xvfb.service
+Wants=network-online.target
+
+[Service]
+Type=forking
+
+# Load credentials from secure environment file
+EnvironmentFile=/etc/ibkr/credentials.env
+
+# Set display for virtual framebuffer
+Environment="DISPLAY=:99"
+
+# IBC and Gateway paths
+Environment="IBC_PATH=/opt/ibc"
+Environment="IBC_INI=/etc/ibkr/config.ini"
+Environment="TWS_PATH=/home/trader/Jts"
+Environment="LOG_PATH=/var/log/ibkr"
+
+# Working directory
+WorkingDirectory=/opt/ibc
+
+# Pre-start checks
+ExecStartPre=/bin/bash -c 'test -f /etc/ibkr/config.ini || (echo "Config file missing" && exit 1)'
+ExecStartPre=/bin/bash -c 'pgrep -x Xvfb > /dev/null || (echo "Xvfb not running" && exit 1)'
+ExecStartPre=/bin/bash -c 'pkill -9 -f ibgateway || true'
+
+# Start IBC (which starts Gateway)
+ExecStart=/opt/ibc/gatewaystart.sh
+
+# Post-start: Wait for API port and send notification
+ExecStartPost=/bin/bash -c 'for i in {1..60}; do nc -z localhost 4002 && break || sleep 2; done'
+ExecStartPost=/bin/bash -c 'curl -s -X POST "$DISCORD_WEBHOOK_URL" -H "Content-Type: application/json" -d "{\"content\": \"🟢 IBKR Gateway started successfully\"}" || true'
+
+# Graceful shutdown
+ExecStop=/opt/ibc/gatewaystop.sh
+ExecStopPost=/bin/bash -c 'pkill -9 -f ibgateway || true'
+ExecStopPost=/bin/bash -c 'curl -s -X POST "$DISCORD_WEBHOOK_URL" -H "Content-Type: application/json" -d "{\"content\": \"🔴 IBKR Gateway stopped\"}" || true'
+
+# Restart policy
+Restart=on-failure
+RestartSec=30
+
+# Prevent restart loops: max 3 restarts per 5 minutes
+StartLimitIntervalSec=300
+StartLimitBurst=3
+
+# Shutdown timeout
+TimeoutStopSec=60
+
+# User context (create 'trader' user for production)
+# For desktop testing, use your regular user
+User=trader
+Group=trader
+
+# Logging
+StandardOutput=append:/var/log/ibkr/gateway.log
+StandardError=append:/var/log/ibkr/gateway.log
+
+[Install]
+WantedBy=multi-user.target

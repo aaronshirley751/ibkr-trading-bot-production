@@ -1,0 +1,25 @@
+# =============================================================================
+# IBKR Gateway Daily Restart Timer
+# =============================================================================
+#
+# Triggers a Gateway restart at 4:30 PM ET daily.
+# This mitigates the documented Gateway memory leak in options pricing engine.
+#
+# =============================================================================
+
+[Unit]
+Description=IBKR Gateway Daily Restart Timer (4:30 PM ET)
+Documentation=https://github.com/charter-stone/crucible
+
+[Timer]
+# 4:30 PM Eastern Time, every day
+OnCalendar=*-*-* 16:30:00 America/New_York
+
+# If system was off at scheduled time, run on next boot
+Persistent=true
+
+# Accuracy window (don't need millisecond precision)
+AccuracySec=60
+
+[Install]
+WantedBy=timers.target

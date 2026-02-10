@@ -27,6 +27,16 @@ htmlcov/
 .env.local
 # .env.template - DO NOT IGNORE (this is documentation)
 
+# Docker Gateway - Ignore actual credentials, keep examples
+docker/gateway/.env
+docker/gateway/tws_settings/
+docker/gateway/restart.log
+# docker/gateway/.env.example - DO NOT IGNORE (this is documentation)
+# docker/gateway/config.ini - DO NOT IGNORE (this is configuration schema)
+
+# Deprecated deployment files (systemd-based, retained for reference)
+# deploy/ directory is tracked but marked as deprecated
+
 # State files
 state/crucible_state.json
 logs/*.log

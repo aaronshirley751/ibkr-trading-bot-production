@@ -1,0 +1,95 @@
+# =============================================================================
+# IBKR Gateway Docker Compose Configuration
+# Charter & Stone Capital — The Crucible
+# =============================================================================
+#
+# Usage:
+#   docker compose up -d      # Start Gateway
+#   docker compose down       # Stop Gateway
+#   docker compose logs -f    # View logs
+#   docker compose restart    # Restart Gateway
+#
+# =============================================================================
+
+services:
+  gateway:
+    image: gnzsnz/ib-gateway:stable
+    container_name: ibkr-gateway
+
+    # Restart policy: always restart unless explicitly stopped
+    restart: unless-stopped
+
+    # Environment variables (loaded from .env file)
+    environment:
+      # Credentials
+      - TWS_USERID=${TWS_USERID}
+      - TWS_PASSWORD=${TWS_PASSWORD}
+      - TRADING_MODE=${TRADING_MODE:-paper}
+
+      # Timezone (for proper market hours handling)
+      - TIME_ZONE=America/New_York
+
+      # 2FA handling: restart on timeout for fresh attempt
+      - TWOFA_TIMEOUT_ACTION=restart
+      - RELOGIN_AFTER_TWOFA_TIMEOUT=yes
+
+      # IBC behavior settings
+      - ACCEPT_INCOMING_CONNECTION_ACTION=accept
+      - ALLOW_BLIND_TRADING=yes
+      - EXISTING_SESSION_DETECTED_ACTION=primary
+      - STORE_SETTINGS_ON_SERVER=no
+      - READ_ONLY_API=no
+
+      # Enable IBC trace logging for debugging
+      - IBC_LOGLEVEL=Debug
+
+      # Disable Gateway's internal auto-restart (we use scheduled restart)
+      - AUTO_RESTART_TIME=
+
+      # VNC password for debugging access (optional)
+      - VNC_SERVER_PASSWORD=${VNC_PASSWORD:-}
+
+    # Port mappings
+    ports:
+      # Gateway API port (trading bot connects here)
+      - "127.0.0.1:4002:4002"
+
+      # VNC port for debugging (optional, disable in production)
+      - "127.0.0.1:5900:5900"
+
+      # noVNC web interface (optional, disable in production)
+      - "127.0.0.1:6080:6080"
+
+    # Optional: Persist Gateway settings between restarts
+    # volumes:
+    #   - ./tws_settings:/home/ibgateway/Jts
+
+    # Container health check
+    healthcheck:
+      test: ["CMD-SHELL", "timeout 1 bash -c '</dev/tcp/localhost/4002' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s  # Gateway takes time to start
+
+    # Resource limits (optional, adjust based on host capacity)
+    # deploy:
+    #   resources:
+    #     limits:
+    #       memory: 4G
+    #     reservations:
+    #       memory: 2G
+
+    # Logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+# =============================================================================
+# Network configuration (optional, for multi-container setups)
+# =============================================================================
+# networks:
+#   default:
+#     name: crucible-network

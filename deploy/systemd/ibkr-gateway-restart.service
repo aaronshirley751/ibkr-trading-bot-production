@@ -1,0 +1,34 @@
+# =============================================================================
+# IBKR Gateway Restart Service (Oneshot)
+# =============================================================================
+#
+# Triggered by ibkr-gateway-restart.timer.
+# Performs pre-restart checks and restarts the Gateway.
+#
+# =============================================================================
+
+[Unit]
+Description=IBKR Gateway Scheduled Restart
+Documentation=https://github.com/charter-stone/crucible
+After=ibkr-gateway.service
+
+[Service]
+Type=oneshot
+
+# Load credentials for Discord notification
+EnvironmentFile=/etc/ibkr/credentials.env
+
+# Pre-restart check (optional: check for open positions)
+ExecStartPre=/usr/local/bin/ibkr-pre-restart-check.sh
+
+# Restart the Gateway service
+ExecStart=/bin/systemctl restart ibkr-gateway.service
+
+# Post-restart notification
+ExecStartPost=/bin/bash -c 'curl -s -X POST "$DISCORD_WEBHOOK_URL" -H "Content-Type: application/json" -d "{\"content\": \"🔄 IBKR Gateway restarted (scheduled 4:30 PM ET)\"}" || true'
+
+# User context
+User=root
+
+[Install]
+WantedBy=multi-user.target

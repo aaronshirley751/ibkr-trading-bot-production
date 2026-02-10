@@ -1,0 +1,28 @@
+# =============================================================================
+# Xvfb - X Virtual Framebuffer Service
+# =============================================================================
+#
+# Provides a virtual display for IBKR Gateway (which requires a GUI).
+# Gateway runs headlessly using this virtual display.
+#
+# =============================================================================
+
+[Unit]
+Description=X Virtual Framebuffer (Display :99)
+Documentation=man:Xvfb(1)
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/Xvfb :99 -ac -screen 0 1024x768x24
+
+# Restart on failure
+Restart=on-failure
+RestartSec=5
+
+# Run as nobody (minimal privileges)
+User=nobody
+Group=nogroup
+
+[Install]
+WantedBy=multi-user.target
