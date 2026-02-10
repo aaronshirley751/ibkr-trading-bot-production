@@ -52,6 +52,43 @@ services:
     networks:
       - trading-network
 
+  health-monitor:
+    build:
+      context: ../monitoring
+      dockerfile: Dockerfile
+    container_name: health-monitor
+    depends_on:
+      - gateway
+    environment:
+      # Discord Integration
+      - DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL}
+      - DISCORD_OPERATOR_MENTION=${DISCORD_OPERATOR_MENTION:-}
+      # Gateway Configuration
+      - GATEWAY_CONTAINER_NAME=ib-gateway
+      - GATEWAY_HOST=gateway
+      - GATEWAY_PORT=4002
+      - GATEWAY_RESTART_TIMEOUT_SECONDS=${GATEWAY_RESTART_TIMEOUT_SECONDS:-30}
+      - GATEWAY_READY_MAX_ATTEMPTS=${GATEWAY_READY_MAX_ATTEMPTS:-12}
+      - GATEWAY_READY_CHECK_INTERVAL_SECONDS=${GATEWAY_READY_CHECK_INTERVAL_SECONDS:-5}
+      # Health Check Configuration
+      - HEALTH_CHECK_INTERVAL_SECONDS=${HEALTH_CHECK_INTERVAL_SECONDS:-60}
+      - PORT_CHECK_TIMEOUT_SECONDS=${PORT_CHECK_TIMEOUT_SECONDS:-3}
+      - ERROR_RECOVERY_INTERVAL_SECONDS=${ERROR_RECOVERY_INTERVAL_SECONDS:-120}
+      # Memory Thresholds
+      - MEMORY_WARNING_MB=${MEMORY_WARNING_MB:-1536}
+      - MEMORY_CRITICAL_MB=${MEMORY_CRITICAL_MB:-1740}
+      # Alert Throttling
+      - ALERT_COOLDOWN_SECONDS=${ALERT_COOLDOWN_SECONDS:-300}
+      # Bot Monitoring (Optional - MVP defaults to disabled)
+      - MONITOR_BOT_HEALTH=${MONITOR_BOT_HEALTH:-false}
+      - BOT_DEPLOYMENT_MODE=${BOT_DEPLOYMENT_MODE:-none}
+      - BOT_CONTAINER_NAME=${BOT_CONTAINER_NAME:-trading-bot}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro  # Docker API access
+    restart: unless-stopped
+    networks:
+      - trading-network
+
 volumes:
   gateway-data:
   bot-logs:
