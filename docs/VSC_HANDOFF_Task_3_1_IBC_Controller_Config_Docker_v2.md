@@ -15,6 +15,14 @@
 
 ---
 
+> **Implementation Note (2026-02-10):** This document reflects the original v2 design.
+> The actual implementation differs slightly due to container image behavior discovered
+> during deployment (CUSTOM_CONFIG disabled, environment-based credential injection).
+> See [docker/gateway/README.md](../docker/gateway/README.md) for the authoritative
+> deployment guide.
+
+---
+
 ## Deployment Strategy
 
 | Phase | Platform | Runtime | Notes |

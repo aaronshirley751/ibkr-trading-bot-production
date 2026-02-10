@@ -31,8 +31,8 @@ docker compose logs -f
 # 7. Verify health (wait ~2 minutes for authentication)
 docker ps        # Should show "healthy" status
 
-# 8. Test API connection
-nc -zv localhost 4002   # Should succeed
+# 8. Test API connection (Windows PowerShell)
+Test-NetConnection -ComputerName localhost -Port 4002
 ```
 
 ---
@@ -130,9 +130,13 @@ nano .env  # Or use your preferred editor
 
 - ✅ **Start with paper trading:** Set `TRADING_MODE=paper`
 - ✅ **Use paper credentials:** Not live account credentials
-- ✅ **Special characters:** If password contains `$`, `\`, or quotes, wrap in single quotes:
+- ⚠️ **Password format:** Do NOT wrap password in quotes in .env file:
   ```bash
-  TWS_PASSWORD='my$pecial\pass'
+  # CORRECT:
+  TWS_PASSWORD=my$pecial_pass123
+
+  # WRONG (quotes become part of password):
+  TWS_PASSWORD='my$pecial_pass123'
   ```
 
 **Verify .env is gitignored:**
@@ -196,12 +200,12 @@ docker inspect --format='{{.State.Health.Status}}' ibkr-gateway
 
 ### Test API Connectivity
 
-```bash
-# Linux/WSL/Mac:
-nc -zv localhost 4002
-
+```powershell
 # Windows PowerShell:
 Test-NetConnection -ComputerName localhost -Port 4002
+
+# Linux/WSL:
+timeout 1 bash -c '</dev/tcp/localhost/4002' && echo "Port 4002 open" || echo "Port 4002 closed"
 ```
 
 **Expected result:** Connection succeeds (may show protocol error, that's OK).
@@ -220,7 +224,7 @@ http://localhost:6080
 
 ## Container Image
 
-**Image:** `ghcr.io/gnzsnz/ib-gateway-docker:stable`
+**Image:** `gnzsnz/ib-gateway:stable` (from Docker Hub)
 
 **What's Inside:**
 - IBKR Gateway (offline installer)
@@ -243,8 +247,8 @@ http://localhost:6080
 Orchestrates the Gateway container:
 - Maps port 4002 (Gateway API) to localhost
 - Maps ports 5900/6080 (VNC debugging, optional)
-- Mounts `config.ini` for IBC settings
-- Configures health checks and restart policy
+- Configures IBC behavior via environment variables
+- Configures health checks (bash /dev/tcp test) and restart policy
 - Loads credentials from `.env` file
 
 **Do not modify** unless you need to change:
@@ -277,15 +281,17 @@ Orchestrates the Gateway container:
 wsl chmod 600 /mnt/c/Users/yourname/path/to/docker/gateway/.env
 ```
 
-### config.ini (IBC Configuration)
+### IBC Configuration (via Environment Variables)
 
-Controls Gateway behavior:
-- Auto-accept API connections
-- Dismiss warning dialogs
-- Handle 2FA timeouts
-- Disable Gateway's internal restart (we manage restarts)
+Gateway behavior is controlled via environment variables in `docker-compose.yml`:
+- `ACCEPT_INCOMING_CONNECTION_ACTION=accept` - Auto-accept API connections
+- `ALLOW_BLIND_TRADING=yes` - Allow trading without market data subscription
+- `EXISTING_SESSION_DETECTED_ACTION=primary` - Take over if another session exists
+- `READ_ONLY_API=no` - Allow full API access (not read-only)
 
-**Rarely needs modification** — defaults are optimized for automated trading.
+The container uses its internal IBC config template with environment variable substitution.
+
+**No config.ini mounting required** — all settings via docker-compose.yml environment section.
 
 ---
 
