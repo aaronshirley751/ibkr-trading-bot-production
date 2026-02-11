@@ -8,14 +8,14 @@
 ## Day 1: 2026-02-11
 
 **Auto-Start (6:00 AM ET):**
-- [ ] Discord notification received
-- [ ] Task Scheduler execution successful
-- [ ] Bot logs show successful startup
+- [x] Discord notification received (after manual re-run at 6:32 AM)
+- [ ] Task Scheduler execution successful — **FAILED** (syntax error in script)
+- [x] Bot logs show successful startup (manual re-run)
 
 **Overnight Logs (6:00 AM - 9:00 AM):**
-- [ ] No errors or exceptions
-- [ ] Gateway connection stable
-- [ ] Dry-run mode confirmed
+- [x] No errors or exceptions (containers were already running from last night)
+- [x] Gateway connection stable
+- [x] Dry-run mode confirmed
 
 **Strategy Signals (If Market Open):**
 - [ ] Gameplan ingested (if provided)
@@ -33,9 +33,21 @@
 - [ ] Resource usage stable
 - [ ] Logs show consistent operation
 
-**Issues Identified:** [None / List issues with severity]
+**Issues Identified:**
+| Severity | Issue | Root Cause | Remediation |
+|----------|-------|------------|-------------|
+| **MAJOR** | Task Scheduler ran but failed (exit code 1) | `startup_script.ps1` had orphaned duplicate catch block (lines 79-82) causing PowerShell syntax error | Removed duplicate code, tested manually, committed fix |
 
-**Notes:** [Any additional observations]
+**Remediation Applied:**
+- Fixed: `deployment/windows/startup_script.ps1` — removed orphaned lines
+- Tested: Manual re-run at 6:32 AM successful
+- Discord notification received ✅
+- Commit: `f201dae` — "Fix startup_script.ps1 syntax error causing Task Scheduler failure"
+
+**Notes:**
+- Containers were already running (Up 9 hours) from previous night's testing
+- Task Scheduler correctly ran at 6:00 AM ET but script failed silently due to syntax error
+- **Validation Day 1 does NOT count** — manual intervention required. Restart 5-day count from Day 2 (2/12)
 
 ---
 
