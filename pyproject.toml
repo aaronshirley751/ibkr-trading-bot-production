@@ -17,6 +17,7 @@ aiohttp = "*"
 python-dotenv = "*"
 jsonschema = "^4.17.0"
 httpx = "^0.27.0"
+psutil = "^5.9.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "*"
