@@ -1,57 +1,89 @@
 # Task 4.2 Validation Log — Extended Dry-Run Monitoring
 
-**Validation Period:** 2026-02-11 to [End Date]
+**Validation Period:** 2026-02-12 to [End Date]
 **Stability Criteria Target:** 5+ consecutive days (or fewer if stability proven)
 
 ---
 
-## Day 1: 2026-02-11
+## 2026-02-11 — ❌ FAILED (Does Not Count)
+
+**Incident Summary:**
+- **Severity:** 🟠 MAJOR
+- **Issue:** Task Scheduler auto-start failed (exit code 1)
+- **Root Cause:** PowerShell syntax error — orphaned duplicate catch block in `startup_script.ps1` (lines 79-82)
+- **Detection Time:** 06:00 AM ET (Task Scheduler ran, script failed)
+- **Diagnosis Time:** 30 minutes (06:00 - 06:32 ET)
+- **Remediation:** Removed orphaned lines, tested manually, committed fix
+
+**Why This Day Doesn't Count:**
+Per Task 4.2 Stability Criterion #2 ("Zero manual interventions required"), manual intervention occurred:
+- Engineer manually diagnosed the failure
+- Engineer manually fixed the script
+- Engineer manually re-ran the script
+
+**Commits:**
+- `f201dae` — "Fix startup_script.ps1 syntax error causing Task Scheduler failure"
+- `1db23e4` — "Task 4.2 Day 1: Document startup script failure and remediation"
 
 **Auto-Start (6:00 AM ET):**
 - [x] Discord notification received (after manual re-run at 6:32 AM)
-- [ ] Task Scheduler execution successful — **FAILED** (syntax error in script)
+- [ ] Task Scheduler execution successful — **FAILED** (syntax error)
 - [x] Bot logs show successful startup (manual re-run)
-
-**Overnight Logs (6:00 AM - 9:00 AM):**
-- [x] No errors or exceptions (containers were already running from last night)
-- [x] Gateway connection stable
-- [x] Dry-run mode confirmed
-
-**Strategy Signals (If Market Open):**
-- [ ] Gameplan ingested (if provided)
-- [ ] Signals generated correctly
-- [ ] No logic errors
 
 **Gateway Restart (4:30 PM ET):**
 - [ ] Gateway restarted via Task Scheduler
 - [ ] Bot reconnected without manual intervention
 - [ ] Reconnection logged
+- [ ] Discord notifications received (pre + post restart)
 
-**End-of-Day Summary:**
-- [ ] No manual interventions required
-- [ ] No crashes or unexpected shutdowns
-- [ ] Resource usage stable
-- [ ] Logs show consistent operation
-
-**Issues Identified:**
-| Severity | Issue | Root Cause | Remediation |
-|----------|-------|------------|-------------|
-| **MAJOR** | Task Scheduler ran but failed (exit code 1) | `startup_script.ps1` had orphaned duplicate catch block (lines 79-82) causing PowerShell syntax error | Removed duplicate code, tested manually, committed fix |
-
-**Remediation Applied:**
-- Fixed: `deployment/windows/startup_script.ps1` — removed orphaned lines
-- Tested: Manual re-run at 6:32 AM successful
-- Discord notification received ✅
-- Commit: `f201dae` — "Fix startup_script.ps1 syntax error causing Task Scheduler failure"
+**Gateway Restart Task Result:** *(Update after 5:00 PM ET)*
+```
+LastRunTime: [pending]
+LastTaskResult: [pending]
+```
 
 **Notes:**
 - Containers were already running (Up 9 hours) from previous night's testing
-- Task Scheduler correctly ran at 6:00 AM ET but script failed silently due to syntax error
-- **Validation Day 1 does NOT count** — manual intervention required. Restart 5-day count from Day 2 (2/12)
+- Gateway restart script validated — no syntax errors found
+- Tonight's 4:30 PM gateway restart is critical validation of fixes
 
 ---
 
-## Day 2: 2026-02-12
+## Day 1: 2026-02-12 — Official Validation Start
+
+**Auto-Start (6:00 AM ET):**
+- [ ] Discord notification received
+- [ ] Task Scheduler execution successful (exit code 0)
+- [ ] Bot logs show successful startup
+
+**Overnight Logs (6:00 AM - 9:00 AM):**
+- [ ] No errors or exceptions
+- [ ] Gateway connection stable
+- [ ] Dry-run mode confirmed
+
+**Strategy Signals (If Market Open):**
+- [ ] Gameplan ingested (if provided)
+- [ ] Signals generated correctly
+- [ ] No logic errors
+
+**Gateway Restart (4:30 PM ET):**
+- [ ] Gateway restarted via Task Scheduler
+- [ ] Bot reconnected without manual intervention
+- [ ] Reconnection logged
+
+**End-of-Day Summary:**
+- [ ] No manual interventions required
+- [ ] No crashes or unexpected shutdowns
+- [ ] Resource usage stable
+- [ ] Logs show consistent operation
+
+**Issues Identified:** [None / List issues with severity]
+
+**Notes:** [Any additional observations]
+
+---
+
+## Day 2: 2026-02-13
 
 **Auto-Start (6:00 AM ET):**
 - [ ] Discord notification received
@@ -85,7 +117,7 @@
 
 ---
 
-## Day 3: 2026-02-13
+## Day 3: 2026-02-14
 
 **Auto-Start (6:00 AM ET):**
 - [ ] Discord notification received
@@ -119,7 +151,7 @@
 
 ---
 
-## Day 4: 2026-02-14
+## Day 4: 2026-02-15
 
 **Auto-Start (6:00 AM ET):**
 - [ ] Discord notification received
@@ -153,7 +185,7 @@
 
 ---
 
-## Day 5: 2026-02-15
+## Day 5: 2026-02-16
 
 **Auto-Start (6:00 AM ET):**
 - [ ] Discord notification received
