@@ -11,7 +11,12 @@ $LogDir = "$ProjectRoot\logs"
 $RestartLogFile = "$LogDir\gateway_restart_$(Get-Date -Format 'yyyyMMdd').log"
 
 # Discord webhook URL
-$DiscordWebhookUrl = $env:DISCORD_WEBHOOK_URL
+$EnvFilePath = "$ProjectRoot\docker\.env"
+if (Test-Path $EnvFilePath) {
+    $DiscordWebhookUrl = (Get-Content $EnvFilePath | Select-String "DISCORD_WEBHOOK_URL").Line.Split('=')[1]
+} else {
+    $DiscordWebhookUrl = $env:DISCORD_WEBHOOK_URL
+}
 
 # ============================================
 # Logging Function
@@ -34,7 +39,7 @@ function Send-DiscordNotification {
     )
 
     if (-not $DiscordWebhookUrl) {
-        Write-RestartLog "⚠️ Discord webhook not configured, skipping notification"
+        Write-RestartLog "Discord webhook not configured, skipping notification"
         return
     }
 
@@ -45,25 +50,30 @@ function Send-DiscordNotification {
         default   { 3447003 }
     }
 
-    $Payload = @{
-        embeds = @(
-            @{
-                title = "🔄 IBKR Gateway - Daily Restart"
-                description = $Message
-                color = $Color
-                timestamp = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
-                footer = @{
-                    text = "Desktop Deployment (Task 4.1)"
-                }
-            }
-        )
-    } | ConvertTo-Json -Depth 4
+    # Escape message for JSON
+    $EscapedMessage = $Message -replace '\\', '\\' -replace '"', '\"' -replace "`n", '\n' -replace "`r", '' -replace "`t", '\t'
+
+    # Build JSON payload manually to avoid ConvertTo-Json escaping issues
+    $TimestampUTC = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ss.fffZ')
+    $Payload = @"
+{
+    "embeds": [{
+        "title": "Gateway Daily Restart",
+        "description": "$EscapedMessage",
+        "color": $Color,
+        "timestamp": "$TimestampUTC",
+        "footer": {
+            "text": "Desktop Deployment (Task 4.1)"
+        }
+    }]
+}
+"@
 
     try {
-        Invoke-RestMethod -Uri $DiscordWebhookUrl -Method Post -Body $Payload -ContentType "application/json" -ErrorAction Stop
-        Write-RestartLog "✅ Discord notification sent successfully"
+        Invoke-RestMethod -Uri $DiscordWebhookUrl -Method Post -Body $Payload -ContentType "application/json; charset=utf-8" -ErrorAction Stop
+        Write-RestartLog "Discord notification sent successfully"
     } catch {
-        Write-RestartLog "❌ Failed to send Discord notification: $_"
+        Write-RestartLog "Failed to send Discord notification: $($_.Exception.Message)"
     }
 }
 

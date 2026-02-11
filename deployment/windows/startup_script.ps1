@@ -10,8 +10,13 @@ $DockerComposeDir = "$ProjectRoot\docker"
 $LogDir = "$ProjectRoot\logs"
 $StartupLogFile = "$LogDir\startup_$(Get-Date -Format 'yyyyMMdd').log"
 
-# Discord webhook URL (read from .env if needed, or hardcode for startup notifications)
-$DiscordWebhookUrl = $env:DISCORD_WEBHOOK_URL
+# Discord webhook URL (read from docker/.env file)
+$EnvFilePath = "$DockerComposeDir\.env"
+if (Test-Path $EnvFilePath) {
+    $DiscordWebhookUrl = (Get-Content $EnvFilePath | Select-String "DISCORD_WEBHOOK_URL").Line.Split('=')[1]
+} else {
+    $DiscordWebhookUrl = $env:DISCORD_WEBHOOK_URL
+}
 
 # ============================================
 # Logging Function
@@ -34,7 +39,7 @@ function Send-DiscordNotification {
     )
 
     if (-not $DiscordWebhookUrl) {
-        Write-StartupLog "⚠️ Discord webhook not configured, skipping notification"
+        Write-StartupLog "Discord webhook not configured, skipping notification"
         return
     }
 
@@ -45,24 +50,32 @@ function Send-DiscordNotification {
         default   { 3447003 }
     }
 
-    $Payload = @{
-        embeds = @(
-            @{
-                title = "🤖 IBKR Trading Bot - Startup"
-                description = $Message
-                color = $Color
-                timestamp = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
-                footer = @{
-                    text = "Desktop Deployment (Task 4.1)"
-                }
-            }
-        )
-    } | ConvertTo-Json -Depth 4
+    # Escape message for JSON
+    $EscapedMessage = $Message -replace '\\', '\\' -replace '"', '\"' -replace "`n", '\n' -replace "`r", '' -replace "`t", '\t'
+
+    # Build JSON payload manually to avoid ConvertTo-Json escaping issues
+    $TimestampUTC = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ss.fffZ')
+    $Payload = @"
+{
+    "embeds": [{
+        "title": "Bot Auto-Start",
+        "description": "$EscapedMessage",
+        "color": $Color,
+        "timestamp": "$TimestampUTC",
+        "footer": {
+            "text": "Desktop Deployment (Task 4.1)"
+        }
+    }]
+}
+"@
 
     try {
-        Invoke-RestMethod -Uri $DiscordWebhookUrl -Method Post -Body $Payload -ContentType "application/json" -ErrorAction Stop
-        Write-StartupLog "✅ Discord notification sent successfully"
+        Invoke-RestMethod -Uri $DiscordWebhookUrl -Method Post -Body $Payload -ContentType "application/json; charset=utf-8" -ErrorAction Stop
+        Write-StartupLog "Discord notification sent successfully"
     } catch {
+        Write-StartupLog "Failed to send Discord notification: $($_.Exception.Message)"
+    }
+}
         Write-StartupLog "❌ Failed to send Discord notification: $_"
     }
 }
