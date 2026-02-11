@@ -76,9 +76,6 @@ function Send-DiscordNotification {
         Write-StartupLog "Failed to send Discord notification: $($_.Exception.Message)"
     }
 }
-        Write-StartupLog "❌ Failed to send Discord notification: $_"
-    }
-}
 
 # ============================================
 # Main Startup Logic
