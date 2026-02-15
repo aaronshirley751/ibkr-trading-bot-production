@@ -15,7 +15,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional
 
-import httpx  # type: ignore
+import httpx
 from ib_insync import IB
 
 logger = logging.getLogger(__name__)

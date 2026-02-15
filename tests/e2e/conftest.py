@@ -132,6 +132,11 @@ def valid_strategy_a_gameplan() -> Dict[str, Any]:
         "earnings_blackout": [],
         "geo_risk": "low",
         "alert_message": "Strategy A — SPY momentum, normal regime",
+        "entry_window_start": "10:00",
+        "entry_window_end": "15:00",
+        "vix_gate": {"check_time": "09:45", "threshold": 18.0},
+        "max_risk_per_trade": 12.0,
+        "max_risk_ceiling": 18.0,
         "data_quality": {
             "quarantine_active": False,
             "discrepancy_count": 0,
@@ -179,6 +184,11 @@ def valid_strategy_b_gameplan() -> Dict[str, Any]:
         "earnings_blackout": [],
         "geo_risk": "medium",
         "alert_message": "Strategy B — SPY mean reversion, elevated regime",
+        "entry_window_start": "09:30",
+        "entry_window_end": "16:00",
+        "vix_gate": {"check_time": "09:45", "threshold": 25.0},
+        "max_risk_per_trade": 12.0,
+        "max_risk_ceiling": 18.0,
         "data_quality": {
             "quarantine_active": False,
             "discrepancy_count": 0,

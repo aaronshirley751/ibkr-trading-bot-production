@@ -18,7 +18,9 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, Optional
 
+from src.bot.trading_loop import TradingLoop
 from src.config import GatewayConfig, RiskConfig, DEFAULT_RISK_CONFIG
+from src.notifications.discord import DiscordNotifier
 from src.utils.gateway_health import GatewayHealthChecker
 
 logger = logging.getLogger(__name__)
@@ -112,68 +114,32 @@ def run_trading_loop(
     risk_config: RiskConfig,
     gameplan: Dict[str, Any],
     health_checker: GatewayHealthChecker,
+    discord_notifier: Optional["DiscordNotifier"] = None,
 ) -> None:
     """
-    Execute main trading loop.
+    Execute main trading loop with pre-trade gate enforcement.
 
-    This is a placeholder for the full trading implementation.
-    Future iterations will integrate with:
-    - IBKRGateway (src.integrations.ibkr_gateway)
-    - Strategy execution (src.strategy.execution)
-    - Risk management (src.risk)
+    Delegates to TradingLoop which handles:
+    - VIX confirmation gate (Strategy C override if triggered)
+    - Entry window enforcement
+    - Affordability checks before order entry
+    - Periodic Gateway health checks
+    - Graceful shutdown
 
     Args:
         gateway_config: Gateway configuration.
         risk_config: Risk management configuration.
         gameplan: Daily gameplan dictionary.
         health_checker: Gateway health checker instance.
+        discord_notifier: Optional Discord notification sender.
     """
-    import time
-
-    logger.info("Trading loop started")
-    logger.info(f"Active strategy: {gameplan.get('strategy', 'unknown')}")
-    logger.info(f"Target symbols: {gameplan.get('symbols', [])}")
-
-    strategy = gameplan.get("strategy", "C")
-
-    # Strategy C: Cash preservation mode - keep bot alive with periodic health checks
-    if strategy == "C":
-        logger.info("Strategy C active: Cash preservation mode - monitoring only")
-        logger.info("Bot initialized successfully and ready for trading logic")
-        health_check_interval = 300  # 5 minutes
-
-        while True:
-            try:
-                # Periodic health check (lightweight port check)
-                logger.debug("Performing periodic Gateway health check...")
-                is_healthy = health_checker.check_port(timeout=10.0)
-                if is_healthy:
-                    logger.debug("Gateway health check passed")
-                else:
-                    logger.warning("Gateway health check failed, will retry")
-                time.sleep(health_check_interval)
-            except KeyboardInterrupt:
-                logger.info("Shutdown signal received")
-                raise
-            except Exception as e:
-                logger.error(f"Error in health check loop: {e}")
-                time.sleep(60)  # Wait a minute before retrying
-    else:
-        # TODO: Implement full trading loop integration for Strategies A and B
-        # This will be expanded in future tasks to include:
-        # 1. IBKRGateway initialization
-        # 2. Market data fetching
-        # 3. Signal evaluation
-        # 4. Order execution
-        # 5. Position management
-        # 6. Periodic Gateway health checks
-        logger.info("Trading loop placeholder - full implementation pending")
-        logger.info("Bot initialized successfully and ready for trading logic")
-
-        # Keep alive for non-Strategy-C modes as well (placeholder)
-        while True:
-            time.sleep(60)
-            logger.debug("Trading loop heartbeat (placeholder mode)")
+    loop = TradingLoop(
+        gameplan=gameplan,
+        risk_config=risk_config,
+        health_checker=health_checker,
+        discord_notifier=discord_notifier,
+    )
+    loop.run()
 
 
 def main() -> None:
@@ -243,12 +209,17 @@ def main() -> None:
         logger.info(f"✓ Strategy {gameplan.get('strategy')} active")
 
     # Phase 5: Trading Loop
+    discord_notifier = DiscordNotifier(
+        webhook_url=gateway_config.discord_webhook_url,
+    )
+
     try:
         run_trading_loop(
             gateway_config=gateway_config,
             risk_config=risk_config,
             gameplan=gameplan,
             health_checker=health_checker,
+            discord_notifier=discord_notifier,
         )
     except KeyboardInterrupt:
         logger.info("Bot shutdown requested by user")

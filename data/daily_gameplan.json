@@ -1,0 +1,49 @@
+{
+  "date": "2026-02-17",
+  "session_id": "gauntlet_20260214_0915",
+  "regime": "normal",
+  "strategy": "A",
+  "symbols": ["SPY"],
+  "operator_id": "CSATSPRIM",
+  "position_size_multiplier": 0.8,
+  "vix_at_analysis": 15.5,
+  "vix_source_verified": true,
+  "bias": "neutral",
+  "expected_behavior": "trending",
+  "key_levels": {
+    "spy_support": 596.00,
+    "spy_resistance": 610.00,
+    "spy_pivot": 603.00
+  },
+  "catalysts": ["Presidents' Day holiday Monday — Tuesday open may gap"],
+  "earnings_blackout": [],
+  "geo_risk": "low",
+  "alert_message": "CONDITIONAL GO — Strategy A paper validation, SPY only, Feb 17",
+  "entry_window_start": "10:00",
+  "entry_window_end": "15:00",
+  "vix_gate": {
+    "check_time": "09:45",
+    "threshold": 18.0
+  },
+  "max_risk_per_trade": 12.0,
+  "max_risk_ceiling": 18.0,
+  "data_quality": {
+    "quarantine_active": false,
+    "discrepancy_count": 0,
+    "last_verified": "2026-02-14T09:15:00-05:00"
+  },
+  "hard_limits": {
+    "max_daily_loss_pct": 0.10,
+    "max_single_position": 120,
+    "pdt_trades_remaining": 3,
+    "force_close_at_dte": 3,
+    "weekly_drawdown_governor_active": false,
+    "max_weekly_drawdown_pct": 0.15,
+    "max_intraday_pivots": 2
+  },
+  "scorecard": {
+    "yesterday_pnl": 0.0,
+    "weekly_cumulative_pnl": 0.0,
+    "streak": 0
+  }
+}
