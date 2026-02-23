@@ -17,7 +17,7 @@ Threat model references: T-01, T-02, T-03, T-04, T-09, T-12
 """
 
 import pytest
-from datetime import date, timedelta
+from datetime import date
 from typing import Any, Dict, List
 
 # =============================================================================
@@ -376,12 +376,18 @@ class TestPDTCompliance:
         assert pdt_tracker.can_open_day_trade(trades_in_window=trades) is False
 
     def test_rolling_window_drops_old_trades(self, pdt_tracker):
-        """Trades older than 5 business days should not count."""
-        today = date.today()
-        old_trade = today - timedelta(days=8)  # Beyond 5 business days
-        trades = [old_trade, old_trade, old_trade, today]
-        # Only 1 trade in window (today), 3 old trades dropped
-        assert pdt_tracker.trades_remaining(trades_in_window=trades) == 2
+        """Trades older than 5 business days should not count.
+
+        Pinned to stable mid-March 2026 dates (no holidays in window) so the
+        test is not sensitive to date.today() or calendar-holiday shifts.
+        5 business days back from 2026-03-16 (Mon) == 2026-03-09 (Mon).
+        old_trade = 2026-03-06 (Fri) is before that cutoff and should drop off.
+        """
+        as_of = date(2026, 3, 16)  # stable Monday with no nearby holidays
+        old_trade = date(2026, 3, 6)  # Friday — before the 2026-03-09 cutoff
+        trades = [old_trade, old_trade, old_trade, as_of]
+        # Only 1 trade in window (as_of), 3 old trades predate the window cutoff
+        assert pdt_tracker.trades_remaining(trades_in_window=trades, as_of_date=as_of) == 2
 
     def test_rolling_window_friday_to_monday(self, pdt_tracker):
         """

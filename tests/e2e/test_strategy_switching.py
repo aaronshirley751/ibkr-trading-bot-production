@@ -231,7 +231,12 @@ class TestGameplanFileValidation:
     """Verify the deployed gameplan file validates against schema."""
 
     def test_daily_gameplan_validates_against_schema(self, tmp_path: Path) -> None:
-        """data/daily_gameplan.json validates against the extended schema."""
+        """data/daily_gameplan.json validates against the extended schema.
+
+        2026-02-23: Morning Gauntlet verdict NO-GO — Strategy C deployed.
+        VIX 19.09 exceeds Strategy A ceiling. Catalyst-dense week with
+        FOMC, GDP, PCE, Powell testimony, and elevated geo-risk.
+        """
         gameplan_path = Path("data/daily_gameplan.json")
         if not gameplan_path.exists():
             pytest.skip("data/daily_gameplan.json not found (CI or clean checkout)")
@@ -239,15 +244,20 @@ class TestGameplanFileValidation:
         loader = GameplanLoader(schema_path=Path("schemas/daily_gameplan_schema.json"))
         gameplan = loader.load(gameplan_path)
 
-        # Should NOT have fallen back to Strategy C default
+        # Should NOT have fallen back to Strategy C *default* — the gameplan
+        # must load and validate cleanly; Strategy C here is intentional.
         assert (
             gameplan.get("_default_reason") is None
         ), f"Gameplan validation failed: {gameplan.get('_default_reason')}"
-        assert gameplan["strategy"] == "A"
-        assert gameplan["symbols"] == ["SPY"]
+
+        # 2026-02-23 gauntlet — Strategy C, no entries
+        assert gameplan["strategy"] == "C"
+        assert gameplan["symbols"] == []
         assert gameplan["operator_id"] == "CSATSPRIM"
+        assert gameplan["regime"] == "elevated"
+        assert gameplan["position_size_multiplier"] == 0.0
         assert gameplan["entry_window_start"] == "10:00"
         assert gameplan["entry_window_end"] == "15:00"
         assert gameplan["vix_gate"]["threshold"] == 18.0
-        assert gameplan["max_risk_per_trade"] == 12.0
-        assert gameplan["max_risk_ceiling"] == 18.0
+        assert gameplan["max_risk_per_trade"] == 0.0
+        assert gameplan["max_risk_ceiling"] == 0.0
