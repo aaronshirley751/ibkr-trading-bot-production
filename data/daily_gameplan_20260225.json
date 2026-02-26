@@ -1,0 +1,70 @@
+{
+  "date": "2026-02-25",
+  "session_id": "gauntlet_20260225_0700",
+  "regime": "elevated",
+  "strategy": "C",
+  "symbols": [],
+  "operator_id": "CSATSPRIM",
+  "position_size_multiplier": 0.0,
+  "vix_at_analysis": 19.55,
+  "vix_source_verified": true,
+  "bias": "neutral",
+  "expected_behavior": "mean_reverting",
+  "key_levels": {
+    "spy_support": 650.00,
+    "spy_resistance": 700.00,
+    "spy_pivot": 688.00,
+    "qqq_support": 590.00,
+    "qqq_resistance": 640.00,
+    "qqq_pivot": 609.00
+  },
+  "catalysts": [
+    "NVDA earnings after close — binary event",
+    "Consumer Confidence 10:00 AM ET (consensus 91.2)",
+    "Case-Shiller Home Prices 9:00 AM ET",
+    "7 Fed speakers: Bostic, Collins, Waller, Cook, Barkin, Collins (2nd), Musalem",
+    "5-Year Note Auction",
+    "Trump SOTU digest — tariff policy evolution (Section 122 → new legal mechanisms)",
+    "Iran military buildup — 2 carrier groups deployed",
+    "Government shutdown ongoing",
+    "AI sector contagion (Workday -9.5% pre-market)"
+  ],
+  "earnings_blackout": [
+    "NVDA — reporting after close Feb 25"
+  ],
+  "geo_risk": "high",
+  "alert_message": "NO-GO: Strategy C. VIX 19.55 (elevated), NVDA binary event after close, 7 Fed speakers, extreme catalyst density. Fifth consecutive Strategy C. CRO VETO — no capital deployment. Watch post-NVDA conditions for potential Feb 26 GO setup if VIX compresses below 18.",
+  "entry_window_start": "10:00",
+  "entry_window_end": "15:00",
+  "vix_gate": {
+    "check_time": "09:45",
+    "threshold": 18.0
+  },
+  "max_risk_per_trade": 0.0,
+  "max_risk_ceiling": 0.0,
+  "data_quality": {
+    "quarantine_active": false,
+    "stale_fields": [
+      "gex_data",
+      "pre_market_relative_volume"
+    ],
+    "last_verified": "2026-02-25T07:30:00-05:00",
+    "discrepancy_count": 0
+  },
+  "hard_limits": {
+    "max_daily_loss_pct": 0.10,
+    "max_single_position": 120,
+    "pdt_trades_remaining": 3,
+    "force_close_at_dte": 1,
+    "weekly_drawdown_governor_active": false,
+    "max_weekly_drawdown_pct": 0.15,
+    "max_intraday_pivots": 2
+  },
+  "scorecard": {
+    "yesterday_pnl": 0.00,
+    "yesterday_hit_rate": 0.0,
+    "regime_accuracy": true,
+    "weekly_cumulative_pnl": 0.00,
+    "streak": 0
+  }
+}

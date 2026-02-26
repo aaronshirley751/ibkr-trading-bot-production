@@ -223,6 +223,32 @@
       "type": "number",
       "minimum": 0,
       "description": "Absolute maximum dollar risk per trade (hard ceiling)"
+    },
+    "cro_conditions": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "CRO gating conditions — operational constraints imposed for the session"
+    },
+    "strategy_parameters": {
+      "type": "object",
+      "description": "Detailed strategy execution parameters for the selected strategy",
+      "properties": {
+        "ema_fast": {"type": "integer", "minimum": 1},
+        "ema_slow": {"type": "integer", "minimum": 1},
+        "rsi_min": {"type": "number", "minimum": 0, "maximum": 100},
+        "rsi_max": {"type": "number", "minimum": 0, "maximum": 100},
+        "vwap_condition": {"type": "string"},
+        "take_profit_pct": {"type": "number", "minimum": 0},
+        "stop_loss_pct": {"type": "number", "minimum": 0},
+        "time_stop_minutes": {"type": "integer", "minimum": 1},
+        "min_dte": {"type": "integer", "minimum": 0},
+        "moneyness": {"type": "string"},
+        "entry_window_start": {"type": "string", "pattern": "^\\d{2}:\\d{2}$"},
+        "entry_window_end": {"type": "string", "pattern": "^\\d{2}:\\d{2}$"},
+        "vix_ceiling": {"type": "number", "minimum": 0},
+        "premium_max_usd": {"type": "number", "minimum": 0},
+        "premium_gate": {"type": "string"}
+      }
     }
   },
   "additionalProperties": false
