@@ -70,7 +70,7 @@
     },
     "expected_behavior": {
       "type": "string",
-      "enum": ["trending", "mean_reverting", "cash_preservation"],
+      "enum": ["trending", "mean_reverting", "cash_preservation", "event_driven_crisis"],
       "description": "Expected market behavior pattern"
     },
     "key_levels": {
@@ -108,6 +108,11 @@
           "type": "array",
           "items": {"type": "string"},
           "description": "List of data fields that failed freshness validation"
+        },
+        "advisory_notes": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Non-blocking data quality advisory notes"
         },
         "last_verified": {
           "type": ["string", "null"],
@@ -184,6 +189,14 @@
         "streak": {
           "type": "integer",
           "description": "Current winning/losing streak"
+        },
+        "yesterday_hit_rate": {
+          "type": ["number", "null"],
+          "description": "Previous day hit rate (null if no sessions yet)"
+        },
+        "regime_accuracy": {
+          "type": ["boolean", "null"],
+          "description": "Whether regime classification was correct (null if not yet evaluated)"
         }
       }
     },
@@ -228,6 +241,40 @@
       "type": "array",
       "items": {"type": "string"},
       "description": "CRO gating conditions — operational constraints imposed for the session"
+    },
+    "vix_previous_close": {
+      "type": ["number", "null"],
+      "minimum": 0,
+      "description": "VIX level at previous session close"
+    },
+    "earnings_watchlist": {
+      "type": "array",
+      "description": "Earnings events on the near-term radar",
+      "items": {
+        "type": "object",
+        "required": ["symbol", "date"],
+        "properties": {
+          "symbol": {"type": "string"},
+          "date": {"type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$"},
+          "impact": {"type": "string", "enum": ["low", "medium", "high"]}
+        },
+        "additionalProperties": false
+      }
+    },
+    "no_go_rationale": {
+      "type": "object",
+      "description": "Structured rationale for a NO-GO / Strategy C session",
+      "properties": {
+        "primary": {"type": "string"},
+        "secondary": {"type": "string"},
+        "tertiary": {"type": "string"},
+        "quaternary": {"type": "string"}
+      }
+    },
+    "reassessment_triggers": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Conditions that would prompt a regime reassessment mid-session"
     },
     "strategy_parameters": {
       "type": "object",

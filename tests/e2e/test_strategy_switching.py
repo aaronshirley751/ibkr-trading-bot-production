@@ -233,9 +233,11 @@ class TestGameplanFileValidation:
     def test_daily_gameplan_validates_against_schema(self, tmp_path: Path) -> None:
         """data/daily_gameplan.json validates against the extended schema.
 
-        2026-02-26: Morning Gauntlet verdict CONDITIONAL GO — Strategy A deployed.
-        VIX 17.93 (below 18.5 ceiling). QQQ-only session; first Strategy A
-        paper trading validation exercise.
+        2026-03-02: Morning Gauntlet verdict NO-GO — Strategy C deployed.
+        Active US-Iran war (Operation Epic Fury). VIX 21.4 (elevated, above all
+        active strategy thresholds). SPY -$6, QQQ -$8 pre-market. Unanimous
+        committee decision. Day 1 trading loop validation under Strategy C
+        (CAP-46).
         """
         gameplan_path = Path("data/daily_gameplan.json")
         if not gameplan_path.exists():
@@ -250,14 +252,15 @@ class TestGameplanFileValidation:
             gameplan.get("_default_reason") is None
         ), f"Gameplan validation failed: {gameplan.get('_default_reason')}"
 
-        # 2026-02-26 gauntlet — Strategy A, QQQ only
-        assert gameplan["strategy"] == "A"
-        assert gameplan["symbols"] == ["QQQ"]
+        # 2026-03-02 gauntlet — Strategy C, cash preservation, NO-GO
+        assert gameplan["strategy"] == "C"
+        assert gameplan["symbols"] == []
         assert gameplan["operator_id"] == "CSATSPRIM"
-        assert gameplan["regime"] == "normal"
-        assert gameplan["position_size_multiplier"] == 0.6
-        assert gameplan["entry_window_start"] == "10:00"
-        assert gameplan["entry_window_end"] == "15:30"
-        assert gameplan["vix_gate"]["threshold"] == 18.5
-        assert gameplan["max_risk_per_trade"] == 100
-        assert gameplan["max_risk_ceiling"] == 100
+        assert gameplan["regime"] == "elevated"
+        assert gameplan["position_size_multiplier"] == 0.0
+        assert gameplan["bias"] == "bearish"
+        assert gameplan["geo_risk"] == "high"
+        assert gameplan["vix_at_analysis"] == pytest.approx(21.40)
+        assert gameplan["data_quality"]["quarantine_active"] is False
+        assert gameplan["hard_limits"]["pdt_trades_remaining"] == 3
+        assert gameplan["hard_limits"]["force_close_at_dte"] == 1
