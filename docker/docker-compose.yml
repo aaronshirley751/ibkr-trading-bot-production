@@ -74,13 +74,13 @@ services:
       - GATEWAY_STARTUP_TIMEOUT=${GATEWAY_STARTUP_TIMEOUT:-300}
       - GATEWAY_MAX_RETRIES=${GATEWAY_MAX_RETRIES:-30}
       - GATEWAY_RETRY_INTERVAL=${GATEWAY_RETRY_INTERVAL:-5}
-      - GAMEPLAN_PATH=/data/gameplan.json
+      - GAMEPLAN_PATH=/data/daily_gameplan.json
       - DRY_RUN=${DRY_RUN:-true}
       - DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL}
       - CLIENT_ID=${CLIENT_ID:-1}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
     volumes:
-      - ./data:/data:ro
+      - ../data:/data:ro
       - bot-logs:/app/logs
     restart: unless-stopped
     networks:
