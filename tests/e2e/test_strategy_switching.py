@@ -233,9 +233,9 @@ class TestGameplanFileValidation:
     def test_daily_gameplan_validates_against_schema(self, tmp_path: Path) -> None:
         """data/daily_gameplan.json validates against the extended schema.
 
-        2026-02-23: Morning Gauntlet verdict NO-GO — Strategy C deployed.
-        VIX 19.09 exceeds Strategy A ceiling. Catalyst-dense week with
-        FOMC, GDP, PCE, Powell testimony, and elevated geo-risk.
+        2026-02-26: Morning Gauntlet verdict CONDITIONAL GO — Strategy A deployed.
+        VIX 17.93 (below 18.5 ceiling). QQQ-only session; first Strategy A
+        paper trading validation exercise.
         """
         gameplan_path = Path("data/daily_gameplan.json")
         if not gameplan_path.exists():
@@ -245,19 +245,19 @@ class TestGameplanFileValidation:
         gameplan = loader.load(gameplan_path)
 
         # Should NOT have fallen back to Strategy C *default* — the gameplan
-        # must load and validate cleanly; Strategy C here is intentional.
+        # must load and validate cleanly.
         assert (
             gameplan.get("_default_reason") is None
         ), f"Gameplan validation failed: {gameplan.get('_default_reason')}"
 
-        # 2026-02-23 gauntlet — Strategy C, no entries
-        assert gameplan["strategy"] == "C"
-        assert gameplan["symbols"] == []
+        # 2026-02-26 gauntlet — Strategy A, QQQ only
+        assert gameplan["strategy"] == "A"
+        assert gameplan["symbols"] == ["QQQ"]
         assert gameplan["operator_id"] == "CSATSPRIM"
-        assert gameplan["regime"] == "elevated"
-        assert gameplan["position_size_multiplier"] == 0.0
+        assert gameplan["regime"] == "normal"
+        assert gameplan["position_size_multiplier"] == 0.6
         assert gameplan["entry_window_start"] == "10:00"
-        assert gameplan["entry_window_end"] == "15:00"
-        assert gameplan["vix_gate"]["threshold"] == 18.0
-        assert gameplan["max_risk_per_trade"] == 0.0
-        assert gameplan["max_risk_ceiling"] == 0.0
+        assert gameplan["entry_window_end"] == "15:30"
+        assert gameplan["vix_gate"]["threshold"] == 18.5
+        assert gameplan["max_risk_per_trade"] == 100
+        assert gameplan["max_risk_ceiling"] == 100

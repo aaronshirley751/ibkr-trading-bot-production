@@ -14,13 +14,20 @@ All failure paths result in Strategy C activation or startup failure with alerts
 """
 
 import logging
+import os
 import sys
 from pathlib import Path
 from typing import Any, Dict, Optional
 
 from src.bot.trading_loop import TradingLoop
+from src.broker.connection import IBKRConnection
+from src.broker.contracts import ContractManager
+from src.broker.market_data import MarketDataProvider
+from src.bot.execution.order_manager import OrderManager
+from src.broker.ib_client_adapter import IbClientAdapter
 from src.config import GatewayConfig, RiskConfig, DEFAULT_RISK_CONFIG
 from src.notifications.discord import DiscordNotifier
+from src.risk.engine import RiskEngine
 from src.utils.gateway_health import GatewayHealthChecker
 
 logger = logging.getLogger(__name__)
@@ -119,12 +126,10 @@ def run_trading_loop(
     """
     Execute main trading loop with pre-trade gate enforcement.
 
-    Delegates to TradingLoop which handles:
-    - VIX confirmation gate (Strategy C override if triggered)
-    - Entry window enforcement
-    - Affordability checks before order entry
-    - Periodic Gateway health checks
-    - Graceful shutdown
+    Constructs and injects all execution pipeline dependencies
+    (IBKRConnection, ContractManager, MarketDataProvider, RiskEngine,
+    OrderManager) then starts TradingLoop.  If any dependency fails to
+    initialise the loop runs in monitoring-only mode (Strategy C fallback).
 
     Args:
         gateway_config: Gateway configuration.
@@ -133,11 +138,66 @@ def run_trading_loop(
         health_checker: Gateway health checker instance.
         discord_notifier: Optional Discord notification sender.
     """
+    # --- Attempt to initialise execution pipeline dependencies ---
+    market_data_provider: Optional[MarketDataProvider] = None
+    contract_manager: Optional[ContractManager] = None
+    risk_engine: Optional[RiskEngine] = None
+    order_manager: Optional[OrderManager] = None
+
+    try:
+        # Use a distinct client_id so this connection doesn't collide with the
+        # health-checker's port probe (which uses client_id 100).
+        bot_client_id = gateway_config.client_id + 10
+        connection = IBKRConnection(
+            host=gateway_config.host,
+            port=gateway_config.port,
+            client_id=bot_client_id,
+        )
+        if connection.connect():
+            contract_manager = ContractManager(connection)
+            market_data_provider = MarketDataProvider(
+                connection=connection,
+                contract_manager=contract_manager,
+                snapshot_mode=True,
+            )
+            risk_engine = RiskEngine(
+                account_balance=float(risk_config.starting_capital),
+                config={
+                    "max_position_pct": float(risk_config.max_position_pct_strategy_a),
+                    "max_risk_pct": float(risk_config.max_risk_per_trade_pct),
+                    "pdt_limit": risk_config.pdt_limit,
+                    "max_daily_loss_pct": float(risk_config.max_daily_loss_pct),
+                    "max_weekly_drawdown_pct": float(risk_config.weekly_drawdown_governor_pct),
+                },
+            )
+            if connection.ib is not None:
+                order_manager = OrderManager(ib_client=IbClientAdapter(connection.ib))
+            logger.info("Trading pipeline dependencies initialised")
+        else:
+            logger.warning(
+                "IBKR connection could not be established — running in monitoring-only mode"
+            )
+    except Exception as exc:
+        logger.warning(
+            "Pipeline initialisation failed (%s: %s) — running in monitoring-only mode",
+            type(exc).__name__,
+            exc,
+        )
+
+    dry_run = os.getenv("DRY_RUN", "true").lower() in ("true", "1", "yes")
+    log_dir = Path(os.getenv("LOG_DIR", "logs"))
+
     loop = TradingLoop(
         gameplan=gameplan,
         risk_config=risk_config,
         health_checker=health_checker,
         discord_notifier=discord_notifier,
+        market_data_provider=market_data_provider,
+        contract_manager=contract_manager,
+        risk_engine=risk_engine,
+        order_manager=order_manager,
+        dry_run=dry_run,
+        log_dir=log_dir,
     )
     loop.run()
 
